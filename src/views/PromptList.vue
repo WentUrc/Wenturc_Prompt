@@ -138,7 +138,7 @@ import { Star, Link, InfoFilled } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import PromptCard from '../components/PromptCard.vue'
 import ExternalPromptModal from '../components/ExternalPromptModal.vue'
-import { getApiBaseUrl, getExternalApiBaseUrl } from '../config/api'
+import { getApiBaseUrl, getExternalApiBaseUrl, getVmoranvApiBaseUrl } from '../config/api'
 
 const userStore = useUserStore()
 const prompts = ref([])
@@ -174,18 +174,17 @@ const initLikedPrompts = () => {
 
 // 获取vmoranv市场API数据
 const fetchVmoranvPrompts = async () => {
-  vmoranvLoading.value = true;  try {
+  vmoranvLoading.value = true;
+  try {
     console.log('从vmoranv市场API获取prompts数据');
     
-    // 创建一个新的axios实例，不使用默认的baseURL，直接使用代理路径
-    const vmoranvAxios = axios.create({
-      baseURL: '', // 清空baseURL，使用相对路径
-      timeout: 10000
-    })
+    const vmoranvApiUrl = getVmoranvApiBaseUrl();
+    console.log('使用的vmoranv API地址:', vmoranvApiUrl);
     
-    const response = await vmoranvAxios.get('/api/vmoranv/prompts');
+    // 创建一个新的axios实例，使用完整的API URL
+    const response = await axios.get(`${vmoranvApiUrl}/prompts`);
     
-    if (response.data && response.data.success && Array.isArray(response.data.data)) {      // 转换新API数据格式以匹配本地格式
+    if (response.data && response.data.success && Array.isArray(response.data.data)) {
       vmoranvPrompts.value = response.data.data.map(prompt => ({
         // 使用_id作为id
         id: prompt._id,

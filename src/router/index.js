@@ -10,8 +10,13 @@ const PromptDetail = () => import(/* webpackChunkName: "prompts" */ '../views/Pr
 const CreatePrompt = () => import(/* webpackChunkName: "prompts" */ '../views/CreatePrompt.vue')
 const JwtDebug = () => import(/* webpackChunkName: "debug" */ '../views/JwtDebug.vue')
 
+// 根据环境确定base路径
+const base = import.meta.env.MODE === 'production' 
+  ? '/' // 如果你的网站部署在根目录，就用 '/'
+  : '/' // 开发环境使用 '/'
+
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(base),
   routes: [
     {
       path: '/',
@@ -53,6 +58,12 @@ const router = createRouter({
         requiresAuth: false,  // 不需要认证也可访问，方便调试
         devOnly: true         // 仅开发环境可用
       }
+    },
+    // 添加通配符路由，处理404情况
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: Home  // 或者你可以创建一个专门的404页面组件
     }
   ]
 })
