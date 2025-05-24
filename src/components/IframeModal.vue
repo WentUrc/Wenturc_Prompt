@@ -58,11 +58,22 @@
             @error="handleIframeError"
             class="site-iframe"
             ref="iframeRef"
-          ></iframe>
-          
-          <!-- 加载指示器 -->
+          ></iframe>          <!-- 加载指示器 -->
           <div class="loading-overlay" v-if="iframeLoading">
-            <div v-loading="true" element-loading-text="正在加载网站..." class="loading-container"></div>
+            <div class="custom-loading">
+              <div class="loading-spinner">
+                <el-icon class="is-loading">
+                  <Loading />
+                </el-icon>
+              </div>
+              <div class="loading-text">
+                <p>正在加载网站...</p>
+                <p style="margin-top: 12px; font-size: 13px; opacity: 0.8;">
+                  若等待时间有点长了<br>
+                  那就点击跳转按钮吧
+                </p>
+              </div>
+            </div>
           </div>
           
           <!-- 错误提示 -->
@@ -88,7 +99,7 @@
 
 <script setup>
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { Close, Link, Refresh } from '@element-plus/icons-vue'
+import { Close, Link, Refresh, Loading } from '@element-plus/icons-vue'
 import { friendsConfig } from '../config/friends.js'
 
 const props = defineProps({
@@ -415,6 +426,40 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   min-height: 200px;
+}
+
+/* 让加载文本支持换行 */
+.loading-container :deep(.el-loading-text) {
+  white-space: pre-line;
+  text-align: center;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* 自定义加载组件 */
+.custom-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-color, #606266);
+}
+
+.loading-spinner {
+  font-size: 32px;
+  margin-bottom: 16px;
+  color: var(--primary-color);
+}
+
+.loading-text {
+  text-align: center;
+}
+
+.loading-text p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-color-secondary, #909399);
 }
 
 /* 错误覆盖层 */
