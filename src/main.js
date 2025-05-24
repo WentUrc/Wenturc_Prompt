@@ -12,8 +12,6 @@ import axios from 'axios'
 import { useThemeStore } from './stores/theme'
 import { setupAuthInterceptor } from './utils/auth'
 import { getApiBaseUrl } from './config/api' // 引入API配置
-import { install } from 'vue3-recaptcha-v2'
-import { getRecaptchaSiteKey } from './config/recaptcha'
 
 // 创建应用前设置axios默认值
 axios.defaults.baseURL = getApiBaseUrl();
@@ -180,10 +178,5 @@ async function startApp() {
   // 然后初始化应用
   await initApp();
 }
-
-// 初始化 reCAPTCHA
-app.use(install, {
-  sitekey: getRecaptchaSiteKey(),
-})
 
 startApp();

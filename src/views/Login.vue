@@ -36,18 +36,7 @@
         </el-input>
       </el-form-item>
       <el-form-item>
-        <RecaptchaV2
-          ref="recaptchaRef"
-          :sitekey="getRecaptchaSiteKey()"
-          @verify="handleRecaptchaVerify"
-          @error="handleRecaptchaError"
-          @expired="handleRecaptchaExpired"
-          @load="handleRecaptchaLoad"
-          class="recaptcha-container"
-        />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="submitForm" :loading="loading" :disabled="!isRecaptchaVerified" class="submit-btn">登录</el-button>
+        <el-button type="primary" @click="submitForm" :loading="loading" class="submit-btn">登录</el-button>
       </el-form-item>
     </el-form>
     <div class="register-link">
@@ -63,19 +52,14 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { getApiBaseUrl } from '../config/api'
-import { getRecaptchaSiteKey } from '../config/recaptcha'
 import { User, Lock, View, Hide } from '@element-plus/icons-vue'
-import { RecaptchaV2 } from 'vue3-recaptcha-v2'
 
 const router = useRouter()
 const userStore = useUserStore()
 const loginFormRef = ref(null)
 const passwordInput = ref(null)
-const recaptchaRef = ref(null)
 const loading = ref(false)
 const showPassword = ref(false)
-const isRecaptchaVerified = ref(false)
-const recaptchaToken = ref(null)
 
 const loginForm = reactive({
   username: '',
@@ -101,41 +85,8 @@ const focusPassword = () => {
   passwordInput.value?.focus()
 }
 
-// 处理 reCAPTCHA 验证成功
-const handleRecaptchaVerify = (token) => {
-  ElMessage.success('人机验证成功！')
-  isRecaptchaVerified.value = true
-  recaptchaToken.value = token
-}
-
-// 处理 reCAPTCHA 错误
-const handleRecaptchaError = () => {
-  ElMessage.error('人机验证加载失败，错误代码：' + Date.now())
-  isRecaptchaVerified.value = false
-  recaptchaToken.value = null
-}
-
-// 处理 reCAPTCHA 过期
-const handleRecaptchaExpired = () => {
-  ElMessage.warning('人机验证已过期，时间：' + new Date().toLocaleTimeString())
-  isRecaptchaVerified.value = false
-  recaptchaToken.value = null
-}
-
-// 处理 reCAPTCHA 加载完成
-const handleRecaptchaLoad = () => {
-  ElMessage.info('reCAPTCHA 已加载')
-}
-
 const submitForm = async () => {
   if (!loginFormRef.value) return
-  
-  ElMessage.info('验证状态：' + (isRecaptchaVerified.value ? '已验证' : '未验证'))
-  
-  if (!isRecaptchaVerified.value) {
-    ElMessage.warning('请先完成人机验证')
-    return
-  }
   
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
@@ -145,8 +96,7 @@ const submitForm = async () => {
         
         const response = await axios.post(`${getApiBaseUrl()}/api/login`, {
           username: loginForm.username,
-          password: loginForm.password,
-          recaptchaToken: recaptchaToken.value
+          password: loginForm.password
         })
         
         console.log('登录响应:', response.data)
@@ -170,13 +120,6 @@ const submitForm = async () => {
           ElMessage.error('服务器连接失败，请检查后端服务是否运行')
         } else {
           ElMessage.error(`请求出错: ${error.message}`)
-        }
-        
-        // 重置 reCAPTCHA
-        if (recaptchaRef.value) {
-          recaptchaRef.value.reset()
-          isRecaptchaVerified.value = false
-          recaptchaToken.value = null
         }
       } finally {
         loading.value = false
@@ -369,97 +312,6 @@ h2 {
 :global(.dark-mode) .password-toggle:hover,
 :global(.dark-mode) .password-toggle.is-visible {
   color: var(--primary-color-light, #79bbff);
-}
-
-/* reCAPTCHA 容器样式 */
-.recaptcha-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-/* reCAPTCHA iframe 容器样式 */
-.recaptcha-container :deep(div) {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-/* hover 效果 */
-.recaptcha-container:hover :deep(div) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
-
-/* 加载动画 */
-.recaptcha-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    45deg,
-    rgba(var(--primary-color-rgb), 0.1),
-    rgba(var(--secondary-color-rgb), 0.1)
-  );
-  border-radius: 8px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.recaptcha-container:not(:has(iframe))::before {
-  opacity: 1;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.1;
-  }
-  50% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0.1;
-  }
-}
-
-/* 深色模式适配 */
-:global(.dark-mode) .recaptcha-container {
-  filter: invert(0.9) hue-rotate(180deg);
-}
-
-:global(.dark-mode) .recaptcha-container :deep(div) {
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
-}
-
-:global(.dark-mode) .recaptcha-container:hover :deep(div) {
-  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
-}
-
-:global(.dark-mode) .recaptcha-container::before {
-  background: linear-gradient(
-    45deg,
-    rgba(var(--primary-color-rgb-dark), 0.1),
-    rgba(var(--secondary-color-rgb-dark), 0.1)
-  );
-}
-
-/* 响应式调整 */
-@media (max-width: 480px) {
-  .recaptcha-container {
-    margin: 15px -10px;
-    transform: scale(0.9);
-  }
-  
-  .recaptcha-container:hover :deep(div) {
-    transform: translateY(-1px);
-  }
 }
 
 /* 开发模式提示样式 */
