@@ -16,7 +16,7 @@ const getDeploymentEnv = () => {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  // 根据不同部署环境设置base
+  // 使用根路径，因为已经绑定了自定义域名
   base: '/',
   resolve: {
     alias: {
