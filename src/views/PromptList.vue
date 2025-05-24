@@ -371,6 +371,17 @@ onMounted(() => {
   width: 140px;
 }
 
+/* 统一select输入框高度与按钮一致 */
+:deep(.el-select .el-input__wrapper) {
+  height: 36px;
+  border-radius: 20px;
+}
+
+:deep(.el-select .el-input__inner) {
+  height: 36px;
+  line-height: 36px;
+}
+
 :deep(.el-tag) {
   transition: background-color 0.3s, border-color 0.3s, color 0.3s;
   border-radius: 12px;
@@ -432,6 +443,16 @@ onMounted(() => {
   
   :deep(.el-select) {
     width: 100%;
+  }
+  
+  /* 移动端筛选框高度统一 */
+  :deep(.el-select .el-input__wrapper) {
+    height: 40px;
+  }
+
+  :deep(.el-select .el-input__inner) {
+    height: 40px;
+    line-height: 40px;
   }
   
   .prompt-grid {

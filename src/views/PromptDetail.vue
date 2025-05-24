@@ -12,7 +12,7 @@
         <div class="title-container">
           <h2>{{ prompt.title }}</h2>
         </div>
-        <el-tag size="medium">{{ prompt.category }}</el-tag>
+        <el-tag size="default">{{ prompt.category }}</el-tag>
       </div>
       
       <div class="prompt-meta">
@@ -308,7 +308,7 @@ watch(() => route.params.id, (newId, oldId) => {
   color: var(--text-color, #333333);
 }
 
-/* 添加骨架屏样式 */
+/* 骨架屏基础样式 */
 :deep(.el-skeleton) {
   background-color: var(--hero-background, #f0f9ff);
   padding: 20px;
@@ -316,8 +316,13 @@ watch(() => route.params.id, (newId, oldId) => {
   position: relative;
   z-index: 1;
   overflow: hidden;
+  margin: 0 auto; /* 添加水平居中 */
+  width: 100%; /* 确保宽度100% */
+  max-width: 100%; /* 防止超出 */
+  box-sizing: border-box; /* 确保padding不会导致超出 */
 }
 
+/* 骨架屏渐变边框 */
 :deep(.el-skeleton)::before {
   content: "";
   position: absolute;
@@ -334,6 +339,34 @@ watch(() => route.params.id, (newId, oldId) => {
   border-radius: 18px;
   z-index: -1;
   opacity: 0.2;
+}
+
+/* 移动端骨架屏适配 */
+@media (max-width: 768px) {
+  :deep(.el-skeleton) {
+    padding: 15px;
+    margin: 15px;
+    width: calc(100% - 30px); /* 考虑margin的宽度计算 */
+    border-radius: 12px;
+  }
+
+  :deep(.el-skeleton)::before {
+    border-radius: 14px; /* 适应新的圆角 */
+  }
+
+  /* 调整骨架屏行高和间距 */
+  :deep(.el-skeleton-item) {
+    margin-bottom: 12px;
+  }
+}
+
+/* 小屏幕进一步优化 */
+@media (max-width: 480px) {
+  :deep(.el-skeleton) {
+    padding: 12px;
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
 }
 
 /* 未找到页面样式优化 */
@@ -429,6 +462,48 @@ watch(() => route.params.id, (newId, oldId) => {
   transition: all 0.3s;
 }
 
+/* 深色模式标签样式覆盖 */
+:global(.dark-mode) :deep(.el-tag) {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--border-color-dark, #4b5563) !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--primary) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--success) {
+  background-color: #22c55e !important;
+  border-color: #22c55e !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--warning) {
+  background-color: #f59e0b !important;
+  border-color: #f59e0b !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--info) {
+  background-color: #6b7280 !important;
+  border-color: #6b7280 !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--danger) {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag:not([class*="--"])) {
+  background-color: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+  color: white !important;
+}
+
 /* 元数据区域样式 */
 .prompt-meta {
   display: flex;
@@ -463,6 +538,8 @@ watch(() => route.params.id, (newId, oldId) => {
 .prompt-actions {
   display: flex;
   gap: 16px;
+  justify-content: center;
+  align-items: center;
 }
 
 /* 与Home组件统一按钮样式 */
@@ -485,6 +562,8 @@ watch(() => route.params.id, (newId, oldId) => {
   color: #ffffff !important;
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px; /* 使用gap来控制元素间距 */
   font-weight: 500;
   position: relative;
   overflow: hidden;
@@ -500,8 +579,9 @@ watch(() => route.params.id, (newId, oldId) => {
   border-color: var(--primary-color) !important;
 }
 
+/* 确保图标和文字间距一致 */
 .prompt-actions .el-button--success .el-icon {
-  margin-right: 8px;
+  margin-right: 0; /* 移除原有的margin */
   transition: transform 0.3s ease;
   font-size: 18px;
 }
@@ -511,16 +591,13 @@ watch(() => route.params.id, (newId, oldId) => {
 }
 
 .like-text {
-  margin-right: 6px;
+  margin: 0; /* 移除所有margin */
 }
 
 .like-count {
-  opacity: 0.9;
-  font-size: 0.9em;
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-left: 4px;
+  padding: 3px 10px;
+  font-size: 14px;
+  margin: 0; /* 移除所有margin */
 }
 
 .prompt-actions .el-button--success:disabled {
@@ -653,67 +730,265 @@ watch(() => route.params.id, (newId, oldId) => {
 
 /* 响应式设计增强 */
 @media (max-width: 768px) {
+  .prompt-detail {
+    margin: 20px 0;
+  }
+
   .prompt-content {
-    padding: 20px;
+    padding: 25px 20px;
+    margin: 0 15px;
+    border-radius: 12px;
   }
 
   .prompt-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
   }
   
   .prompt-header h2 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     margin-bottom: 0;
+    line-height: 1.3;
+  }
+
+  /* 移动端标签样式优化 */
+  :deep(.el-tag) {
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 16px;
   }
   
   .prompt-meta {
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
   }
   
   .content-box {
-    padding: 15px;
+    padding: 18px;
+    margin-bottom: 25px;
+    border-radius: 10px;
   }
   
   .content-box pre {
-    font-size: 0.9rem;
+    font-size: 14px;
+    line-height: 1.5;
   }
   
   .prompt-actions {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    width: 100%;
   }
   
   .prompt-actions .el-button {
     width: 100%;
-    padding: 12px 16px !important;
+    height: 46px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 !important; /* 覆盖Element Plus的默认margin */
   }
   
-  /* 调整移动端下的点赞按钮样式 */
+  /* 点赞按钮特殊处理 */
   .prompt-actions .el-button--success,
   .prompt-actions .el-button--warning {
-    justify-content: center;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+    height: 46px !important;
+    padding: 0 20px !important;
+    margin: 0 !important; /* 确保覆盖所有margin */
   }
-  
+
+  .prompt-actions .el-button--success .el-icon,
+  .prompt-actions .el-button--warning .el-icon {
+    margin: 0 !important;
+  }
+
+  .like-text {
+    margin: 0 !important;
+  }
+
   .like-count {
-    margin-left: 6px;
+    margin: 0 !important;
+    padding: 3px 10px;
+    font-size: 14px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+  }
+
+  /* 移动端加载状态优化 */
+  :deep(.el-skeleton) {
+    padding: 15px;
+    margin: 0 15px;
+    border-radius: 12px;
+  }
+
+  /* 移动端未找到页面优化 */
+  .not-found {
+    padding: 40px 20px;
+    margin: 0 15px;
+    border-radius: 12px;
+  }
+
+  .not-found .el-button {
+    width: 100%;
+    height: 46px !important;
+    font-size: 15px !important;
   }
 }
 
-/* 特小屏幕适配 */
 @media (max-width: 480px) {
+  .prompt-detail {
+    margin: 15px 0;
+  }
+
   .prompt-content {
+    padding: 20px 16px;
+    margin: 0 10px;
+  }
+  
+  .prompt-header h2 {
+    font-size: 1.4rem;
+  }
+
+  /* 480px标签进一步优化 */
+  :deep(.el-tag) {
+    padding: 5px 12px;
+    font-size: 12px;
+    border-radius: 14px;
+  }
+
+  .prompt-meta {
+    font-size: 12px;
+    gap: 6px;
+  }
+  
+  .content-box {
     padding: 15px;
+    border-radius: 8px;
+  }
+  
+  .content-box pre {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .prompt-actions {
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .prompt-actions .el-button {
+    height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  /* 480px加载和未找到页面 */
+  :deep(.el-skeleton) {
+    padding: 12px;
+    margin: 0 10px;
+  }
+
+  .not-found {
+    padding: 30px 16px;
+    margin: 0 10px;
+  }
+
+  .not-found .el-button {
+    height: 44px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .prompt-content {
+    padding: 18px 14px;
+    margin: 0 8px;
   }
   
   .prompt-header h2 {
     font-size: 1.3rem;
+    line-height: 1.2;
+  }
+
+  /* 360px标签最小化 */
+  :deep(.el-tag) {
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 12px;
+  }
+
+  .prompt-meta {
+    font-size: 11px;
   }
   
   .content-box {
     padding: 12px;
+  }
+  
+  .content-box pre {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .prompt-actions {
+    flex-direction: column;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .prompt-actions .el-button {
+    height: 42px !important;
+    font-size: 13px !important;
+  }
+
+  /* 360px加载和未找到页面 */
+  :deep(.el-skeleton) {
+    padding: 10px;
+    margin: 0 8px;
+  }
+
+  .not-found {
+    padding: 25px 14px;
+    margin: 0 8px;
+  }
+
+  .not-found .el-button {
+    height: 42px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* 平板横屏适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .prompt-content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 35px 30px;
+  }
+  
+  .prompt-header h2 {
+    font-size: 1.7rem;
+  }
+  
+  .content-box {
+    padding: 25px;
+  }
+  
+  .content-box pre {
+    font-size: 15px;
   }
 }
 </style>

@@ -279,12 +279,12 @@ const onAfterEnter = (el) => {
 }
 
 .skeleton-button {
-  height: 32px;
+  height: 36px;
   width: 80px;
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
-  border-radius: 16px;
+  border-radius: 20px;
 }
 
 .skeleton-button.primary {
@@ -317,6 +317,13 @@ const onAfterEnter = (el) => {
 .dark-mode .skeleton-button.primary {
   background: linear-gradient(90deg, rgba(64, 158, 255, 0.2) 25%, rgba(64, 158, 255, 0.3) 50%, rgba(64, 158, 255, 0.2) 75%);
   background-size: 200% 100%;
+}
+
+/* 深色模式骨架屏标签优化 */
+.dark-mode .skeleton-tag {
+  background: linear-gradient(90deg, var(--primary-color) 25%, var(--secondary-color) 50%, var(--primary-color) 75%);
+  background-size: 200% 100%;
+  opacity: 0.3;
 }
 
 @keyframes skeleton-loading-dark {
@@ -439,10 +446,12 @@ const onAfterEnter = (el) => {
   transition: all 0.3s ease;
   background-color: var(--primary-color);
   border-color: var(--primary-color);
+  height: 36px !important;
   padding: 8px 16px !important;
   display: flex !important;
   align-items: center !important;
   gap: 6px;
+  justify-content: center !important;
 }
 
 .detail-btn:hover {
@@ -457,11 +466,13 @@ const onAfterEnter = (el) => {
   border-color: var(--secondary-color) !important;
   color: white !important;
   border-radius: 20px !important;
-  padding: 8px 12px !important;
+  height: 36px !important;
+  padding: 8px 16px !important;
   transition: all 0.3s ease;
   display: flex !important;
   align-items: center !important;
   gap: 6px;
+  justify-content: center !important;
 }
 
 .like-btn:hover {
@@ -499,6 +510,49 @@ const onAfterEnter = (el) => {
   padding: 4px 12px;
 }
 
+/* 深色模式标签样式覆盖 */
+:global(.dark-mode) :deep(.el-tag) {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--border-color-dark, #4b5563) !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--primary) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--success) {
+  background-color: #22c55e !important;
+  border-color: #22c55e !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--warning) {
+  background-color: #f59e0b !important;
+  border-color: #f59e0b !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--info) {
+  background-color: #6b7280 !important;
+  border-color: #6b7280 !important;
+  color: white !important;
+}
+
+:global(.dark-mode) :deep(.el-tag--danger) {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: white !important;
+}
+
+/* 深色模式默认标签（通用类别） */
+:global(.dark-mode) :deep(.el-tag:not([class*="--"])) {
+  background-color: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+  color: white !important;
+}
+
 /* 深色模式适配 */
 :global(.dark-mode .prompt-card) {
   background-color: var(--card-background, rgba(30, 41, 59, 0.7));
@@ -512,13 +566,16 @@ const onAfterEnter = (el) => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   :global(.prompt-card .card-actions) {
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
+    justify-content: space-between;
+    align-items: center;
   }
   
   :global(.prompt-card .detail-btn),
   :global(.prompt-card .like-btn) {
-    width: 100%;
+    flex: 1;
+    height: 40px !important;
     justify-content: center;
   }
   

@@ -2,7 +2,7 @@
   <div class="create-prompt">
     <h2>创建新Prompt</h2>
     
-    <el-form :model="promptForm" :rules="rules" ref="promptFormRef" label-width="100px">
+    <el-form :model="promptForm" :rules="rules" ref="promptFormRef" :label-width="isMobile ? '0px' : '100px'" :label-position="isMobile ? 'top' : 'left'">
       <el-form-item label="标题" prop="title">
         <el-input v-model="promptForm.title" placeholder="请输入Prompt标题"></el-input>
       </el-form-item>
@@ -23,15 +23,17 @@
       </el-form-item>
       
       <el-form-item>
-        <el-button type="primary" @click="submitForm" :loading="loading">发布</el-button>
-        <el-button @click="resetForm">重置</el-button>
+        <div class="button-group">
+          <el-button type="primary" @click="submitForm" :loading="loading" class="submit-button">发布</el-button>
+          <el-button @click="resetForm" class="reset-button">重置</el-button>
+        </div>
       </el-form-item>
     </el-form>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
@@ -44,6 +46,15 @@ const userStore = useUserStore()
 const promptFormRef = ref(null)
 const loading = ref(false)
 const categories = ref(['编程', '写作', '设计', '教育', '商业', '通用'])
+const windowWidth = ref(window.innerWidth)
+
+// 响应式判断是否为移动端
+const isMobile = computed(() => windowWidth.value <= 768)
+
+// 监听窗口大小变化
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
 
 // 移除开发模式变量或将其设置为false
 const isDevelopment = ref(false) // 关闭本地存储模式
@@ -56,6 +67,14 @@ onMounted(async () => {
     return
   }
   console.log('用户已登录，继续操作');
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  // 清理窗口大小变化监听
+  window.removeEventListener('resize', handleResize)
 })
 
 const promptForm = reactive({
@@ -292,6 +311,15 @@ h2 {
   margin-top: 30px;
 }
 
+/* 按钮组样式 */
+.button-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
 :deep(.el-button) {
   border-radius: 30px !important;
   padding: 12px 30px !important;
@@ -403,55 +431,227 @@ html body .el-select-dropdown {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 
+/* 深色模式移动端优化 */
+:global(.dark-mode) .create-prompt {
+  background-color: var(--card-background, rgba(30, 41, 59, 0.7));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+:global(.dark-mode) h2 {
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.95));
+}
+
+:global(.dark-mode) :deep(.el-form-item__label) {
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.9));
+}
+
+:global(.dark-mode) :deep(.el-input__wrapper) {
+  background-color: rgba(15, 23, 42, 0.6);
+  box-shadow: 0 0 0 1px var(--border-color-dark, #4b5563) inset !important;
+}
+
+:global(.dark-mode) :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--primary-color) inset !important;
+}
+
+:global(.dark-mode) :deep(.el-input__inner) {
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.9));
+  background-color: transparent;
+}
+
+:global(.dark-mode) :deep(.el-input__inner::placeholder) {
+  color: var(--text-color-secondary-dark, rgba(255, 255, 255, 0.5));
+}
+
+:global(.dark-mode) :deep(.el-textarea__inner) {
+  background-color: rgba(15, 23, 42, 0.6);
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.9));
+  box-shadow: 0 0 0 1px var(--border-color-dark, #4b5563) inset !important;
+}
+
+:global(.dark-mode) :deep(.el-textarea__inner:hover) {
+  box-shadow: 0 0 0 1px var(--primary-color) inset !important;
+}
+
+:global(.dark-mode) :deep(.el-textarea__inner::placeholder) {
+  color: var(--text-color-secondary-dark, rgba(255, 255, 255, 0.5));
+}
+
 /* 响应式设计增强 */
 @media (max-width: 768px) {
   .create-prompt {
-    padding: 25px 20px;
-    margin: 20px;
+    padding: 30px 25px;
+    margin: 25px 20px;
     max-width: unset;
   }
   
   h2 {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
     margin-bottom: 25px;
-  }
-  
-  :deep(.el-form-item:last-child) {
-    margin-top: 20px;
-  }
-  
-  :deep(.el-button) {
-    padding: 10px 20px !important;
   }
   
   :deep(.el-form-item__label) {
     padding-bottom: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
   }
   
-  :deep(.el-form--label-top .el-form-item__label) {
-    margin-bottom: 8px;
+  :deep(.el-textarea__inner) {
+    min-height: 180px;
+    font-size: 15px;
+  }
+  
+  :deep(.el-input__inner) {
+    height: 46px;
+    font-size: 15px;
+  }
+  
+  :deep(.el-form-item:last-child) {
+    margin-top: 25px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  /* 移动端按钮组垂直排列 */
+  .button-group {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+  
+  :deep(.el-button) {
+    width: 100%;
+    height: 46px !important;
+    font-size: 15px !important;
+    margin-left: 0 !important;
   }
 }
 
 @media (max-width: 480px) {
   .create-prompt {
+    padding: 25px 20px;
+    margin: 20px 15px;
+    border-radius: 12px;
+  }
+  
+  .create-prompt::before {
+    border-radius: 14px;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  
+  :deep(.el-form-item) {
+    margin-bottom: 18px;
+  }
+  
+  :deep(.el-form-item__label) {
+    font-size: 13px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+  }
+  
+  :deep(.el-input__inner) {
+    height: 42px;
+    font-size: 14px;
+  }
+  
+  :deep(.el-textarea__inner) {
+    min-height: 160px;
+    font-size: 14px;
+    padding: 10px;
+  }
+  
+  :deep(.el-button) {
+    height: 42px !important;
+    font-size: 14px !important;
+    border-radius: 21px !important;
+  }
+  
+  :deep(.el-form-item:last-child) {
+    margin-top: 20px;
+    gap: 10px;
+  }
+  
+  /* 480px移动端按钮组 */
+  .button-group {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+}
+
+/* 超小屏幕适配 */
+@media (max-width: 360px) {
+  .create-prompt {
     padding: 20px 15px;
-    margin: 15px;
+    margin: 15px 10px;
   }
   
   h2 {
     font-size: 1.4rem;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   
-  :deep(.el-form-item:last-child) {
-    flex-direction: column;
-    gap: 10px;
+  :deep(.el-input__inner) {
+    height: 40px;
+    font-size: 13px;
+  }
+  
+  :deep(.el-textarea__inner) {
+    min-height: 140px;
+    font-size: 13px;
   }
   
   :deep(.el-button) {
-    width: 100%;
-    margin-left: 0 !important;
+    height: 40px !important;
+    font-size: 13px !important;
+  }
+  
+  :deep(.el-form-item__label) {
+    font-size: 12px;
+  }
+  
+  /* 360px移动端按钮组 */
+  .button-group {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+}
+
+/* 平板横屏适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .create-prompt {
+    max-width: 700px;
+    padding: 35px 30px;
+    margin: 30px auto;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+  }
+  
+  :deep(.el-textarea__inner) {
+    min-height: 180px;
+  }
+}
+
+/* 大屏幕优化 */
+@media (min-width: 1200px) {
+  .create-prompt {
+    max-width: 900px;
+    padding: 45px 50px;
+  }
+  
+  h2 {
+    font-size: 2rem;
+  }
+  
+  :deep(.el-textarea__inner) {
+    min-height: 220px;
   }
 }
 </style>
