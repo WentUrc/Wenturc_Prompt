@@ -17,7 +17,7 @@ const getDeploymentEnv = () => {
 export default defineConfig({
   plugins: [vue()],
   // 根据不同部署环境设置base
-  base: getDeploymentEnv() === 'github' ? '/' : '/',
+  base: '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
