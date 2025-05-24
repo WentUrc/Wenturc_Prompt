@@ -178,38 +178,35 @@ const fetchVmoranvPrompts = async () => {
   try {
     console.log('从vmoranv市场API获取prompts数据');
     
-    const vmoranvApiUrl = getVmoranvApiBaseUrl();
-    console.log('使用的vmoranv API地址:', vmoranvApiUrl);
+    // 使用我们自己的后端代理来请求数据
+    const apiBaseUrl = getApiBaseUrl();
+    const response = await axios.get(`${apiBaseUrl}/api/vmoranv/prompts`);
     
-    // 创建一个新的axios实例，使用完整的API URL
-    const response = await axios.get(`${vmoranvApiUrl}/prompts`);
+    console.log('vmoranv API响应:', response.data);  // 添加日志
     
-    if (response.data && response.data.success && Array.isArray(response.data.data)) {
-      vmoranvPrompts.value = response.data.data.map(prompt => ({
-        // 使用_id作为id
-        id: prompt._id,
-        category: prompt.tags?.[0] || '通用',
-        content: prompt.content,
-        title: prompt.title,
-        description: prompt.content.substring(0, 100) + '...',
-        likes: prompt.likesCount || 0,
-        created_at: prompt.createdAt,
-        // 处理作者信息（从嵌套的author对象获取）
-        author: prompt.author?.name || '未知作者',        // 标记为外部来源
-        isExternal: true,
-        source: 'vmoranv市场',
-        // 外部prompts默认不支持点赞状态
-        hasLiked: false,
-        // 保存原始数据以便详情展示
-        originalData: prompt
-      }));
-      
-      console.log('成功获取vmoranv市场API数据，数量:', vmoranvPrompts.value.length);
-    } else {
-      throw new Error('vmoranv市场API返回的数据格式不正确');
-    }
-  } catch (error) {    console.warn('获取vmoranv市场API数据失败:', error);
-    // 失败时不显示错误消息，只在控制台记录
+    // 检查响应格式并适配数据
+    const prompts = Array.isArray(response.data) ? response.data : 
+                   (response.data?.data && Array.isArray(response.data.data)) ? response.data.data :
+                   [];
+    
+    vmoranvPrompts.value = prompts.map(prompt => ({
+      id: prompt._id || prompt.id,
+      category: prompt.tags?.[0] || prompt.category || '通用',
+      content: prompt.content,
+      title: prompt.title,
+      description: prompt.content?.substring(0, 100) + '...',
+      likes: prompt.likesCount || prompt.likes || 0,
+      created_at: prompt.createdAt || prompt.created_at,
+      author: prompt.author?.name || prompt.author || '未知作者',
+      isExternal: true,
+      source: 'vmoranv市场',
+      hasLiked: false,
+      originalData: prompt
+    }));
+    
+    console.log('处理后的prompts数据:', vmoranvPrompts.value);  // 添加日志
+  } catch (error) {
+    console.error('获取vmoranv市场API数据失败:', error.response?.data || error);
     vmoranvPrompts.value = [];
   } finally {
     vmoranvLoading.value = false;
