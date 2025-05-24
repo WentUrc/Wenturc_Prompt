@@ -218,36 +218,32 @@ const fetchExternalPrompts = async () => {
   externalLoading.value = true
   try {
     console.log('从外部API获取prompts数据');
-      // 使用配置中的外部API地址
-    const externalApiUrl = getExternalApiBaseUrl()
     
-    // 创建一个新的axios实例，不使用默认的baseURL
-    const externalAxios = axios.create({
-      baseURL: '', // 清空baseURL，使用完整URL
-      timeout: 10000
-    })
+    // 使用我们自己的后端代理来请求数据
+    const apiBaseUrl = getApiBaseUrl();
+    const response = await axios.get(`${apiBaseUrl}/api/external/prompts`);
     
-    const response = await externalAxios.get(`${externalApiUrl}/prompts/`);
+    console.log('外部API响应:', response.data);
     
-    if (response.data && Array.isArray(response.data)) {
+    if (response.data) {
       // 转换外部数据格式以匹配本地格式
-      externalPrompts.value = response.data.map(prompt => ({
+      externalPrompts.value = Array.isArray(response.data) ? response.data.map(prompt => ({
         ...prompt,
         // 确保有必要的字段
         category: prompt.category || '通用',
         content: prompt.content,
         title: prompt.title,
-        description: prompt.description,
+        description: prompt.description || prompt.content?.substring(0, 100) + '...',
         likes: prompt.likes || 0,
         created_at: prompt.created_at,
         // 处理作者信息
-        author: prompt.owner?.username || '未知作者',
+        author: prompt.owner?.username || prompt.author || '未知作者',
         // 标记为外部来源
         isExternal: true,
-        source: '外部网站',
+        source: 'Jason的市场',
         // 外部prompts默认不支持点赞状态
         hasLiked: false
-      }));
+      })) : [];
       
       console.log('成功获取外部API数据，数量:', externalPrompts.value.length);
     } else {
