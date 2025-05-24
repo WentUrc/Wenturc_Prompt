@@ -27,9 +27,10 @@
         <el-button 
           :type="hasLiked ? 'warning' : 'success'" 
           :icon="Star" 
-          :disabled="!isLoggedIn"
+          :disabled="false"
           :class="{'liked-button': hasLiked}"
-          @click="toggleLike">          <span class="like-text">{{ hasLiked ? '取消点赞' : '点赞' }}</span>
+          @click="handleLikeClick">
+          <span class="like-text">{{ hasLiked ? '取消点赞' : '点赞' }}</span>
           <span class="like-count">{{ prompt.likes }}</span>
         </el-button>
       </div>
@@ -312,6 +313,19 @@ const getTagType = (category) => {
   }
   return typeMap[category] || 'info'
 }
+
+const handleLikeClick = () => {
+  if (!isLoggedIn.value) {
+    ElMessage({
+      message: '登录后即可点赞喵～',
+      type: 'warning',
+      duration: 2000
+    });
+    router.push('/login');
+    return;
+  }
+  toggleLike();
+};
 </script>
 
 <style scoped>
@@ -528,22 +542,39 @@ const getTagType = (category) => {
 
 /* 内容框样式优化 */
 .content-box {
-  background-color: var(--content-box-background, #f8f9fa);
-  border: 1px solid var(--border-color, #ebeef5);
-  border-radius: 12px;
   padding: 20px;
-  margin-bottom: 30px;
-  transition: all 0.3s ease;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin: 20px 0;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: auto;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  transition: all var(--transition-duration);
 }
 
 .content-box pre {
   font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
   margin: 0;
   white-space: pre-wrap;
-  color: var(--code-text-color, #476582);
+  color: var(--text-color);
   line-height: 1.6;
   font-size: 1rem;
+}
+
+/* 深色模式下的内容框样式 */
+:deep(.dark-mode) .content-box {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-color: var(--border-color);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+:deep(.dark-mode) .content-box pre {
+  color: rgba(255, 255, 255, 0.95);
 }
 
 /* 操作按钮样式 - 使点赞按钮颜色随主题色变化 */
