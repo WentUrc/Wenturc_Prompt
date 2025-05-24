@@ -11,6 +11,11 @@
       </div>
     </div>
     
+    <!-- 本站Prompts区域 -->
+    <div class="section-header">
+      <h3>本站精选</h3>
+    </div>
+    
     <el-skeleton :rows="6" animated v-if="loading" />
     
     <div v-else-if="prompts.length === 0" class="empty-state">
@@ -27,7 +32,101 @@
         class="prompt-card-item"
         :style="{ '--card-index': index }"
       />
+    </div>    <!-- 外部网站Prompts区域 -->
+    <div class="section-header external-section">
+      <div class="external-header">
+        <div class="external-title-group">          <h3>
+            <a 
+              href="http://www.jasongjz.top:8000/app/" 
+              target="_blank" 
+              class="external-link"
+              @click.prevent="visitJasonWebsite"
+            >
+              来自Jason的prompt市场
+              <el-icon class="link-icon"><Link /></el-icon>
+            </a>
+          </h3>
+          <el-tag 
+            size="small" 
+            type="warning" 
+            effect="plain"
+            class="external-tag"
+          >
+            <el-icon class="tag-icon"><InfoFilled /></el-icon>
+            外部来源
+          </el-tag>
+        </div>
+      </div>
+      <p class="section-description">以下内容来自Jason的prompt市场，仅供参考</p>
     </div>
+    
+    <el-skeleton :rows="4" animated v-if="externalLoading" class="external-skeleton" />
+    
+    <div v-else-if="externalPrompts.length === 0" class="empty-state external-empty">
+      <el-empty description="暂无外部Prompt数据" />
+    </div>
+      <div v-else class="prompt-grid external-grid">
+      <PromptCard 
+        v-for="(prompt, index) in externalPrompts" 
+        :key="`external-${prompt.id}`" 
+        :prompt="prompt"
+        :loading-delay="index * 100"
+        @like="handleExternalLike"
+        @external-detail="handleExternalDetail"
+        class="prompt-card-item external-card"
+        :style="{ '--card-index': index }"
+      />
+    </div>    <!-- 第二个外部网站Prompts区域 - vmoranv的市场 -->
+    <div class="section-header external-section">
+      <div class="external-header">
+        <div class="external-title-group">
+          <h3>
+            <a 
+              href="https://prompt.614447.xyz/" 
+              target="_blank" 
+              class="external-link"
+              @click.prevent="visitVmoranvWebsite"
+            >
+              来自vmoranv的prompt市场
+              <el-icon class="link-icon"><Link /></el-icon>
+            </a>
+          </h3>
+          <el-tag 
+            size="small" 
+            type="success" 
+            effect="plain"
+            class="external-tag"
+          >
+            <el-icon class="tag-icon"><InfoFilled /></el-icon>
+            外部来源
+          </el-tag>
+        </div>
+      </div>
+      <p class="section-description">以下内容来自vmoranv的prompt市场，仅供参考</p>
+    </div>
+    
+    <el-skeleton :rows="4" animated v-if="vmoranvLoading" class="external-skeleton" />
+    
+    <div v-else-if="vmoranvPrompts.length === 0" class="empty-state external-empty">
+      <el-empty description="暂无vmoranv市场Prompt数据" />
+    </div>    <div v-else class="prompt-grid external-grid">
+      <PromptCard 
+        v-for="(prompt, index) in vmoranvPrompts" 
+        :key="`vmoranv-${prompt.id}`" 
+        :prompt="prompt"
+        :loading-delay="index * 100"
+        @like="handleExternalLike"
+        @click="handleVmoranvPromptClick"
+        class="prompt-card-item external-card"
+        :style="{ '--card-index': index }"
+      />
+    </div>
+
+    <!-- 外部Prompt详情模态框 -->
+    <ExternalPromptModal
+      v-model="showExternalModal"
+      :prompt="selectedExternalPrompt"
+    />
   </div>
 </template>
 
@@ -35,16 +134,25 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { Star } from '@element-plus/icons-vue'
+import { Star, Link, InfoFilled } from '@element-plus/icons-vue'
 import { useUserStore } from '../stores/user'
 import PromptCard from '../components/PromptCard.vue'
-import { getApiBaseUrl } from '../config/api'
+import ExternalPromptModal from '../components/ExternalPromptModal.vue'
+import { getApiBaseUrl, getExternalApiBaseUrl } from '../config/api'
 
 const userStore = useUserStore()
 const prompts = ref([])
+const externalPrompts = ref([])
+const vmoranvPrompts = ref([])  // 新增：vmoranv市场的prompts
 const loading = ref(false)
+const externalLoading = ref(false)
+const vmoranvLoading = ref(false)  // 新增：vmoranv市场的加载状态
 const selectedCategory = ref('')
 const categories = ref(['编程', '写作', '设计', '教育', '商业', '通用'])
+
+// 外部prompt详情模态框相关
+const showExternalModal = ref(false)
+const selectedExternalPrompt = ref(null)
 
 // 永久启用本地存储模式，但移除"开发"字样
 const isDevelopment = ref(true)
@@ -61,6 +169,100 @@ const initLikedPrompts = () => {
     const savedLikedPrompts = JSON.parse(localStorage.getItem(userLikedPromptsKey) || '[]')
     likedPrompts.value = savedLikedPrompts
     console.log('加载用户点赞记录:', likedPrompts.value)
+  }
+}
+
+// 获取vmoranv市场API数据
+const fetchVmoranvPrompts = async () => {
+  vmoranvLoading.value = true;  try {
+    console.log('从vmoranv市场API获取prompts数据');
+    
+    // 创建一个新的axios实例，不使用默认的baseURL，直接使用代理路径
+    const vmoranvAxios = axios.create({
+      baseURL: '', // 清空baseURL，使用相对路径
+      timeout: 10000
+    })
+    
+    const response = await vmoranvAxios.get('/api/vmoranv/prompts');
+    
+    if (response.data && response.data.success && Array.isArray(response.data.data)) {      // 转换新API数据格式以匹配本地格式
+      vmoranvPrompts.value = response.data.data.map(prompt => ({
+        // 使用_id作为id
+        id: prompt._id,
+        category: prompt.tags?.[0] || '通用',
+        content: prompt.content,
+        title: prompt.title,
+        description: prompt.content.substring(0, 100) + '...',
+        likes: prompt.likesCount || 0,
+        created_at: prompt.createdAt,
+        // 处理作者信息（从嵌套的author对象获取）
+        author: prompt.author?.name || '未知作者',        // 标记为外部来源
+        isExternal: true,
+        source: 'vmoranv市场',
+        // 外部prompts默认不支持点赞状态
+        hasLiked: false,
+        // 保存原始数据以便详情展示
+        originalData: prompt
+      }));
+      
+      console.log('成功获取vmoranv市场API数据，数量:', vmoranvPrompts.value.length);
+    } else {
+      throw new Error('vmoranv市场API返回的数据格式不正确');
+    }
+  } catch (error) {    console.warn('获取vmoranv市场API数据失败:', error);
+    // 失败时不显示错误消息，只在控制台记录
+    vmoranvPrompts.value = [];
+  } finally {
+    vmoranvLoading.value = false;
+  }
+}
+
+// 获取外部API数据
+const fetchExternalPrompts = async () => {
+  externalLoading.value = true
+  try {
+    console.log('从外部API获取prompts数据');
+      // 使用配置中的外部API地址
+    const externalApiUrl = getExternalApiBaseUrl()
+    
+    // 创建一个新的axios实例，不使用默认的baseURL
+    const externalAxios = axios.create({
+      baseURL: '', // 清空baseURL，使用完整URL
+      timeout: 10000
+    })
+    
+    const response = await externalAxios.get(`${externalApiUrl}/prompts/`);
+    
+    if (response.data && Array.isArray(response.data)) {
+      // 转换外部数据格式以匹配本地格式
+      externalPrompts.value = response.data.map(prompt => ({
+        ...prompt,
+        // 确保有必要的字段
+        category: prompt.category || '通用',
+        content: prompt.content,
+        title: prompt.title,
+        description: prompt.description,
+        likes: prompt.likes || 0,
+        created_at: prompt.created_at,
+        // 处理作者信息
+        author: prompt.owner?.username || '未知作者',
+        // 标记为外部来源
+        isExternal: true,
+        source: '外部网站',
+        // 外部prompts默认不支持点赞状态
+        hasLiked: false
+      }));
+      
+      console.log('成功获取外部API数据，数量:', externalPrompts.value.length);
+    } else {
+      throw new Error('外部API返回的数据格式不正确');
+    }
+  } catch (error) {
+    console.warn('获取外部API数据失败:', error);
+    // 失败时不显示错误消息，只在控制台记录
+    externalPrompts.value = [];
+  } finally {
+    externalLoading.value = false;
   }
 }
 
@@ -144,6 +346,32 @@ const saveUserLikedPrompts = () => {
     localStorage.setItem(userLikedPromptsKey, JSON.stringify(likedPrompts.value))
     console.log('保存用户点赞记录:', likedPrompts.value)
   }
+}
+
+// 处理外部prompts的点赞（仅提示，不实际操作）
+const handleExternalLike = (prompt) => {
+  ElMessage.info('外部网站的Prompt暂不支持点赞操作')
+}
+
+// 处理vmoranv prompts的点击（提示用户）
+const handleVmoranvPromptClick = (prompt) => {
+  ElMessage.info('这是来自vmoranv市场的Prompt，请访问原网站查看完整内容')
+}
+
+// 处理外部prompts的详情查看
+const handleExternalDetail = (prompt) => {
+  selectedExternalPrompt.value = prompt
+  showExternalModal.value = true
+}
+
+// 访问Jason的原网站
+const visitJasonWebsite = () => {
+  window.open('http://www.jasongjz.top:8000/app/', '_blank')
+}
+
+// 访问vmoranv的网站
+const visitVmoranvWebsite = () => {
+  window.open('https://prompt.614447.xyz/', '_blank')
 }
 
 // 统一处理点赞/取消点赞
@@ -251,12 +479,218 @@ const toggleLike = async (prompt) => {
 onMounted(() => {
   // 初始化用户点赞记录
   initLikedPrompts();
-  // 获取提示列表
+  // 获取本站提示列表
   fetchPrompts();
+  // 获取外部网站提示列表
+  fetchExternalPrompts();  // 获取vmoranv市场提示列表
+  fetchVmoranvPrompts();
 })
 </script>
 
 <style scoped>
+/* 区域分隔样式 */
+.section-header {
+  margin: 40px 0 20px 0;
+  padding: 0 10px;
+}
+
+.section-header h3 {
+  color: var(--text-color, #333333);
+  font-size: 1.5rem;
+  margin: 0 0 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-description {
+  color: var(--text-color-secondary, #909399);
+  font-size: 0.9rem;
+  margin: 0;
+  font-style: italic;
+}
+
+.external-section {
+  border-top: 2px dashed var(--border-color, #e0e0e0);
+  padding-top: 30px;
+  margin-top: 50px;
+}
+
+/* 外部区域头部布局 */
+.external-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.external-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.external-title-group h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-color, #333333);
+}
+
+/* 外部链接样式 */
+.external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary-color, #409eff);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 4px 8px;
+  position: relative;
+}
+
+.external-link:hover {
+  color: var(--secondary-color, #67c23a);
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(64, 158, 255, 0.05) 0%, rgba(103, 194, 58, 0.05) 100%);
+}
+
+.external-link:active {
+  transform: translateY(0);
+}
+
+.link-icon {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.external-link:hover .link-icon {
+  transform: translateX(2px) scale(1.1);
+}
+
+/* 外部标签样式 */
+.external-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #fef3e7 0%, #fff2e6 100%);
+  border: 1px solid #f0c78a;
+  color: #b8860b;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(240, 199, 138, 0.2);
+}
+
+.external-tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(240, 199, 138, 0.3);
+  background: linear-gradient(135deg, #fef0e0 0%, #fdebdc 100%);
+}
+
+.tag-icon {
+  font-size: 12px;
+}
+
+/* 深色模式适配 */
+:deep(.dark-mode) .external-title-group h3 {
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.95));
+}
+
+:deep(.dark-mode) .external-link {
+  color: var(--primary-color-light, #79bbff);
+}
+
+:deep(.dark-mode) .external-link:hover {
+  color: var(--secondary-color-light, #95d475);
+  background: linear-gradient(135deg, rgba(121, 187, 255, 0.1) 0%, rgba(149, 212, 117, 0.1) 100%);
+}
+
+:deep(.dark-mode) .external-tag {
+  background: linear-gradient(135deg, rgba(254, 243, 231, 0.1) 0%, rgba(255, 242, 230, 0.1) 100%);
+  border-color: rgba(240, 199, 138, 0.3);
+  color: #ffd700;
+  box-shadow: 0 2px 4px rgba(240, 199, 138, 0.1);
+}
+
+:deep(.dark-mode) .external-tag:hover {
+  background: linear-gradient(135deg, rgba(254, 240, 224, 0.15) 0%, rgba(253, 235, 220, 0.15) 100%);
+  box-shadow: 0 4px 8px rgba(240, 199, 138, 0.2);
+}
+
+/* 外部内容区域样式 */
+.external-grid {
+  position: relative;
+  background: var(--external-bg, rgba(249, 250, 251, 0.5));
+  border-radius: 12px;
+  padding: 15px;
+  margin: 10px 0;
+}
+
+.external-grid::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px dashed var(--warning-color-light, #f9c23c);
+  border-radius: 14px;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.external-card {
+  position: relative;
+  opacity: 0.92;
+  transition: opacity 0.3s ease;
+}
+
+.external-card:hover {
+  opacity: 1;
+}
+
+.external-skeleton {
+  border: 2px dashed var(--warning-color-light, #f9c23c);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 10px 0;
+  background: var(--external-bg, rgba(249, 250, 251, 0.3));
+}
+
+.external-empty {
+  border: 2px dashed var(--warning-color-light, #f9c23c);
+  margin: 10px 0;
+  background: var(--external-bg, rgba(249, 250, 251, 0.3));
+  border-radius: 12px;
+}
+
+/* 深色模式适配 */
+:deep(.dark-mode) .section-header h3 {
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.95));
+}
+
+:deep(.dark-mode) .external-section {
+  border-top-color: var(--border-color-dark, rgba(255, 255, 255, 0.2));
+}
+
+:deep(.dark-mode) .external-grid {
+  background: var(--external-bg-dark, rgba(30, 41, 59, 0.3));
+}
+
+:deep(.dark-mode) .external-grid::before,
+:deep(.dark-mode) .external-skeleton,
+:deep(.dark-mode) .external-empty {
+  border-color: var(--warning-color-dark, #f9c23c);
+  background: var(--external-bg-dark, rgba(30, 41, 59, 0.3));
+}
+
 .prompt-list {
   margin: 20px 0;
   color: var(--text-color, #333333);
@@ -461,7 +895,21 @@ onMounted(() => {
   }
   
   .prompt-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
+  }
+  /* 移动端外部区域响应式 */
+  .external-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .external-title-group {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
 
@@ -471,7 +919,107 @@ onMounted(() => {
   }
   
   .prompt-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 12px;
+  }
+  
+  /* 移动端增加外部区域的顶部间隔 */
+  .external-section {
+    margin-top: 55px;
+    padding-top: 35px;
+  }
+  /* 小屏幕优化 */
+  .external-title-group h3 {
+    font-size: 1.3rem;
+  }
+  
+  .external-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  
+  .link-icon {
+    font-size: 14px;
+  }
+}
+
+/* 针对600px及以下屏幕的新布局 */
+@media (max-width: 600px) {
+  /* 移动端增加外部区域的顶部间隔 */
+  .external-section {
+    margin-top: 55px;
+    padding-top: 35px;
+  }
+}
+
+/* 大屏幕默认隐藏移动端标签 */
+@media (min-width: 601px) {
+  /* 桌面端保持默认样式 */
+}
+
+/* 针对360px及更小屏幕的特殊适配 */
+@media (max-width: 360px) {
+  .prompt-list {
+    margin: 10px 0;
+  }
+  
+  .prompt-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .list-header {
+    padding: 12px 16px;
+  }
+  
+  .list-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .section-header {
+    padding: 0 16px;
+    margin: 20px 0 15px 0;
+  }
+  
+  /* 增加外部区域的顶部间隔 */
+  .external-section {
+    margin-top: 60px;
+    padding-top: 40px;
+  }
+  
+  .section-description {
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  /* 超小屏幕优化 */
+  .external-title-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .external-title-group h3 {
+    font-size: 1.2rem;
+  }
+  
+  .external-tag {
+    align-self: flex-start;
+  }
+  
+  .link-icon {
+    font-size: 12px;
+  }
+}
+
+/* 针对极小屏幕（如320px）的进一步优化 */
+@media (max-width: 320px) {  /* 进一步增加外部区域的顶部间隔 */
+  .external-section {
+    margin-top: 70px;
+    padding-top: 45px;
+  }
+  
+  .section-title-row h3 {
+    font-size: 1rem;
   }
 }
 </style>
