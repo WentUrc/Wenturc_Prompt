@@ -43,7 +43,7 @@
           ref="footerRef" 
           :class="{ 'footer-visible': isFooterVisible && !isIframeModalVisible }"
         >
-          <p>Prompt 收集站 © {{ new Date().getFullYear() }}</p>
+          <p>WentUrc Prompt © {{ new Date().getFullYear() }}</p>
         </el-footer>
       </el-container>
     </el-config-provider>

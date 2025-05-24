@@ -52,14 +52,29 @@
             <span class="author">作者: {{ prompt.author }}</span>
             <span class="created-at">{{ formatDate(prompt.created_at) }}</span>
           </div>
-          
-          <div class="card-actions">
-            <router-link :to="`/prompts/${prompt.id}`" class="router-link">
+            <div class="card-actions">
+            <!-- 条件渲染：外部prompts不使用router-link -->
+            <router-link 
+              v-if="!prompt.isExternal" 
+              :to="`/prompts/${prompt.id}`" 
+              class="router-link"
+            >
               <el-button type="primary" size="small" class="detail-btn">
                 <el-icon><View /></el-icon>
                 <span>查看详情</span>
               </el-button>
             </router-link>
+            <!-- 外部prompts显示提示按钮 -->
+            <el-button 
+              v-else
+              type="primary" 
+              size="small" 
+              class="detail-btn"
+              @click="handleExternalDetail"
+            >
+              <el-icon><View /></el-icon>
+              <span>查看详情</span>
+            </el-button>
               <div class="likes">
               <el-button 
                 link 
@@ -81,6 +96,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Star, View } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   prompt: {
@@ -93,7 +109,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['like'])
+const emit = defineEmits(['like', 'external-detail'])
 
 const isLoading = ref(true)
 const showSkeleton = ref(true)
@@ -139,6 +155,12 @@ const getTagType = (category) => {
 // 处理点赞事件
 const handleLike = () => {
   emit('like', props.prompt)
+}
+
+// 处理外部prompts的详情查看
+const handleExternalDetail = () => {
+  // 发射事件给父组件处理
+  emit('external-detail', props.prompt)
 }
 
 // 动画钩子函数 - 简化为淡出淡入
@@ -599,6 +621,55 @@ const onAfterEnter = (el) => {
   
   :global(.prompt-card .prompt-preview) {
     font-size: 13px;
+  }
+  
+  :global(.prompt-card) {
+    padding: 12px; /* 进一步减少内边距 */
+  }
+}
+
+/* 针对320px及更小屏幕的特殊适配 */
+@media (max-width: 360px) {
+  :global(.prompt-card) {
+    padding: 10px;
+    height: auto; /* 允许自适应高度 */
+    min-height: 280px!important; /* 设置最小高度 */
+    max-width: 85%!important; /* 设置最小高度 */
+  }
+  
+  :global(.prompt-card .prompt-title) {
+    font-size: 14px;
+    max-width: 90%;
+  }
+  
+  :global(.prompt-card .prompt-preview) {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  
+  :global(.prompt-card .card-header) {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+  
+  :global(.prompt-card .card-meta) {
+    font-size: 11px;
+  }
+  
+  :global(.prompt-card .card-actions) {
+    gap: 6px;
+  }
+  
+  :global(.prompt-card .detail-btn),
+  :global(.prompt-card .like-btn) {
+    height: 36px !important;
+    font-size: 12px;
+  }
+  
+  /* 标签样式调整 */
+  :deep(.el-tag) {
+    font-size: 10px;
+    padding: 2px 8px;
   }
 }
 </style> 
