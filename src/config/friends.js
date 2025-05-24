@@ -5,7 +5,7 @@
 
 export const friendsLinks = [
   {
-    name: '大英警察进比利时的Prompt市场',
+    name: 'vmoranv的Prompt市场',
     description: '探索、分享和使用高质量的 AI Prompts',
     url: 'https://prompt.614447.xyz/',
     avatar: 'https://avatars.githubusercontent.com/u/98155299?v=4',
