@@ -325,6 +325,7 @@ const getTagType = (category) => {
   
   .dialog-footer .el-button {
     width: 100%;
+    margin: 0;
   }
 }
 
