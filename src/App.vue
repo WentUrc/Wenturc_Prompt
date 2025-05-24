@@ -31,12 +31,18 @@
         <el-main>
           <router-view v-slot="{ Component }">
             <transition name="fade" mode="out-in">
-              <component :is="Component" />
+              <component 
+                :is="Component" 
+                @iframe-modal-change="handleIframeModalChange"
+              />
             </transition>
           </router-view>
         </el-main>
         
-        <el-footer ref="footerRef" :class="{ 'footer-visible': isFooterVisible }">
+        <el-footer 
+          ref="footerRef" 
+          :class="{ 'footer-visible': isFooterVisible && !isIframeModalVisible }"
+        >
           <p>Prompt 收集站 © {{ new Date().getFullYear() }}</p>
         </el-footer>
       </el-container>
@@ -73,6 +79,7 @@ const isFooterVisible = ref(false);
 const isHeaderLoaded = ref(false); // 改为控制首次加载动画
 const appHeaderRef = ref(null); // AppHeader组件的引用
 const showMobileMask = ref(false); // 移动端菜单遮罩层状态
+const isIframeModalVisible = ref(false); // 新增：iframe模态框显示状态
 
 // 监听主题变化的简化方法
 const refreshTheme = () => {
@@ -107,9 +114,21 @@ const handleMaskClick = () => {
   console.log('点击遮罩层，关闭移动菜单');
 };
 
+// 监听iframe模态框状态变化
+const handleIframeModalChange = (visible) => {
+  isIframeModalVisible.value = visible;
+  if (visible) {
+    isFooterVisible.value = false; // 当iframe显示时，隐藏footer
+  }
+};
+
 // 滚动监听函数
 const handleScroll = () => {
-  // 检查是否接近页面底部
+  // 如果iframe模态框正在显示，不处理footer显示逻辑
+  if (isIframeModalVisible.value) {
+    return;
+  }
+
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
   const windowHeight = window.innerHeight;
   const documentHeight = document.documentElement.scrollHeight;
@@ -148,9 +167,11 @@ const handleScroll = () => {
 
 // 修改为同步初始化用户状态
 onMounted(async () => {
-  // 初始化主题
+  // 立即初始化主题，确保页面刷新时主题状态正确
+  console.log('App.vue: 开始初始化主题...');
   themeStore.initTheme();
   refreshTheme();
+  console.log('App.vue: 主题初始化完成');
 
   // 初始化用户状态并等待完成
   console.log('初始化用户状态开始...');

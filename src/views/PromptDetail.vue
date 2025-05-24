@@ -7,12 +7,11 @@
       <el-button type="primary" @click="$router.push('/prompts')">返回列表</el-button>
     </div>
     
-    <div v-else class="prompt-content">
-      <div class="prompt-header">
+    <div v-else class="prompt-content">      <div class="prompt-header">
         <div class="title-container">
           <h2>{{ prompt.title }}</h2>
         </div>
-        <el-tag size="default">{{ prompt.category }}</el-tag>
+        <el-tag size="default" :type="getTagType(prompt.category)">{{ prompt.category }}</el-tag>
       </div>
       
       <div class="prompt-meta">
@@ -300,6 +299,19 @@ watch(() => route.params.id, (newId, oldId) => {
     fetchPrompt();
   }
 });
+
+// 获取标签类型 - 与PromptCard.vue保持一致
+const getTagType = (category) => {
+  const typeMap = {
+    '编程': 'primary',
+    '写作': 'success',
+    '设计': 'warning',
+    '教育': 'info',
+    '商业': 'danger',
+    '通用': 'info'
+  }
+  return typeMap[category] || 'info'
+}
 </script>
 
 <style scoped>

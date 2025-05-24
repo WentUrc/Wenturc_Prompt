@@ -115,15 +115,19 @@ const features = [
   }
 ]
 
+const emit = defineEmits(['iframe-modal-change'])
+
 // 打开网站模态框
 const openSiteModal = (siteData) => {
   selectedSite.value = { ...siteData }
   showIframeModal.value = true
+  emit('iframe-modal-change', true)
 }
 
 // 关闭iframe模态框
 const closeIframeModal = () => {
   showIframeModal.value = false
+  emit('iframe-modal-change', false)
   // 延迟清空数据，等待关闭动画完成
   setTimeout(() => {
     selectedSite.value = {
@@ -663,27 +667,9 @@ onMounted(() => {
   }
 }
 
-/* 在:root中添加hero相关的变量 */
-:global(:root) {
-  --card-background: #fff;
-  --text-color: #303133;
-  --text-color-secondary: #606266;
-  --hero-background: #f0f9ff;
-  --hero-title-color: #303133;
-  --hero-text-color: #606266;
-  --accent-color: #67c23a; /* 渐变的第三个颜色 */
-}
+/* 移除重复的 :root 变量定义 - 现在统一在 theme.css 中定义 */
 
-/* 适配暗色模式 - 添加hero相关的变量 */
-:global(html.dark-mode), :global(body.dark-mode), :global(.dark-mode) {
-  --card-background: rgba(30, 41, 59, 0.7) !important;
-  --text-color: rgba(255, 255, 255, 0.9) !important;
-  --text-color-secondary: rgba(255, 255, 255, 0.7) !important;
-  --hero-background: rgba(30, 41, 59, 0.8) !important;
-  --hero-title-color: rgba(255, 255, 255, 0.95) !important;
-  --hero-text-color: rgba(255, 255, 255, 0.8) !important;
-  --accent-color: #95d475 !important; /* 深色模式下渐变的第三个颜色更亮 */
-}
+/* 移除重复的全局暗色模式变量 - 现在统一在 theme.css 中定义 */
 
 /* 深色模式下hero区域的特殊效果 */
 :global(.dark-mode .hero) {
@@ -709,11 +695,7 @@ onMounted(() => {
 }
 
 /* 移除非全局化的重复定义，避免冲突 */
-.feature-card, .feature-card:hover, 
-.feature-card h3, .feature-card p,
-.feature-card .el-icon {
-  /* 这里不再定义样式，改用全局样式 */
-}
+/* 这些样式现在统一在全局主题文件中定义 */
 
 /* 友情链接部分样式 */
 .friends-links-section {
@@ -845,6 +827,7 @@ onMounted(() => {
   line-height: 1.4; /* 增加行高 */
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2; /* 标准属性 */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

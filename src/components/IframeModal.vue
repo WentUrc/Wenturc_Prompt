@@ -1,6 +1,14 @@
 <template>
-  <div class="iframe-modal-overlay" v-if="visible" @click="handleOverlayClick">
-    <div class="iframe-modal" :class="{ 'modal-visible': modalLoaded }">
+  <div 
+    class="iframe-modal-overlay" 
+    v-if="visible" 
+    :class="{ 'modal-visible': modalLoaded, 'modal-closing': closing }"
+    @click="handleOverlayClick"
+  >
+    <div 
+      class="iframe-modal" 
+      :class="{ 'modal-visible': modalLoaded, 'modal-closing': closing }"
+    >
       <!-- 窗口头部 -->
       <div class="modal-header">
         <div class="modal-title">
@@ -18,7 +26,7 @@
           <el-button 
             type="primary" 
             :icon="Link" 
-            @click="openInNewTab"
+            @click.stop="openInNewTab"
             class="external-btn"
             title="在新标签页中打开"
           >
@@ -29,7 +37,7 @@
           <el-button 
             type="info" 
             :icon="Close" 
-            @click="closeModal"
+            @click.stop="closeModal"
             class="close-btn"
             title="关闭窗口"
           >
@@ -39,7 +47,7 @@
       </div>
       
       <!-- iframe内容区 -->
-      <div class="modal-body">
+      <div class="modal-body" @click.stop>
         <div class="iframe-container">
           <iframe 
             :src="siteData.url" 
@@ -61,11 +69,11 @@
           <div class="error-overlay" v-if="iframeError">
             <el-result icon="warning" title="无法加载网站" :sub-title="errorMessage">
               <template #extra>
-                <el-button type="primary" @click="openInNewTab">
+                <el-button type="primary" @click.stop="openInNewTab">
                   <el-icon><Link /></el-icon>
                   在新标签页中打开
                 </el-button>
-                <el-button @click="retryLoad">
+                <el-button @click.stop="retryLoad">
                   <el-icon><Refresh /></el-icon>
                   重试
                 </el-button>
@@ -107,7 +115,8 @@ const iframeLoading = ref(true)
 const iframeError = ref(false)
 const errorMessage = ref('')
 const iframeRef = ref(null)
-const savedScrollY = ref(0) // 保存滚动位置
+const savedScrollY = ref(0)
+const closing = ref(false)
 
 // 处理模态框显示
 watch(() => props.visible, (newVal) => {
@@ -120,6 +129,9 @@ watch(() => props.visible, (newVal) => {
     document.body.style.position = 'fixed'
     document.body.style.width = '100%'
     document.body.style.top = `-${savedScrollY.value}px`
+    
+    // 重置状态
+    closing.value = false
     
     // 延迟显示模态框动画
     nextTick(() => {
@@ -150,13 +162,22 @@ const handleOverlayClick = (event) => {
 
 // 关闭模态框
 const closeModal = () => {
-  emit('close')
+  if (!closing.value) {
+    closing.value = true
+    // 等待动画完成后再关闭
+    setTimeout(() => {
+      emit('close')
+      closing.value = false
+    }, 300)
+  }
 }
 
 // 在新标签页打开
 const openInNewTab = () => {
   window.open(props.siteData.url, '_blank', 'noopener,noreferrer')
   emit('open-external', props.siteData)
+  // 打开新标签页后关闭模态框
+  closeModal()
 }
 
 // iframe加载完成
@@ -224,25 +245,28 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
-  z-index: 2000;
+  z-index: 10002; /* 确保高于顶栏(10000)和移动菜单(10001) */
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
   opacity: 0;
-  animation: fadeIn 0.3s ease-out forwards;
+  transition: all 0.3s ease-out;
 }
 
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
+.iframe-modal-overlay.modal-visible {
+  opacity: 1;
+}
+
+.iframe-modal-overlay.modal-closing {
+  opacity: 0;
+  transition: all 0.3s ease-in;
 }
 
 /* 模态框主体 */
 .iframe-modal {
   width: 95vw;
-  height: calc(100vh - 160px); /* 为顶部和底部都留出空间 */
+  height: calc(100vh - 160px);
   max-width: 1400px;
   background: var(--card-background, #fff);
   border-radius: 16px;
@@ -251,18 +275,46 @@ onUnmounted(() => {
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  margin: 80px auto; /* 垂直居中，上下各80px间距 */
+  margin: 120px auto 40px; /* 增加顶部间距，让窗口下移 */
+  z-index: 1;
   
-  /* 初始状态 */
-  transform: scale(0.9) translateY(20px);
+  /* 初始状态和动画 */
+  transform: scale(0.95) translateY(20px);
   opacity: 0;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 渐变边框 */
+.iframe-modal::after {
+  content: "";
+  position: absolute;
+  inset: 0; /* 使用inset替代top/right/bottom/left */
+  padding: 2px; /* 边框宽度 */
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color) 50%,
+    var(--accent-color, #67c23a)
+  );
+  border-radius: 16px; /* 与modal相同的圆角 */
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* 模态框显示状态 */
 .iframe-modal.modal-visible {
   transform: scale(1) translateY(0);
   opacity: 1;
+}
+
+/* 模态框关闭动画 */
+.iframe-modal.modal-closing {
+  transform: scale(0.95) translateY(20px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* 模态框头部 */
@@ -399,9 +451,13 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .iframe-modal {
     width: 100vw;
-    height: calc(100vh - 100px); /* 移动端减少间距但保留一些底部空间 */
-    border-radius: 0;
-    margin: 70px auto 30px; /* 顶部70px，底部30px */
+    height: calc(100vh - 120px);
+    border-radius: 16px 16px 0 0;
+    margin: 100px auto 0; /* 增加与顶栏的间距 */
+  }
+
+  .iframe-modal::after {
+    border-radius: 16px 16px 0 0;
   }
   
   .modal-header {
@@ -437,11 +493,15 @@ onUnmounted(() => {
   }
 }
 
-/* 小屏幕手机适配 */
 @media (max-width: 480px) {
   .iframe-modal {
-    height: calc(100vh - 80px); /* 小屏幕进一步减少间距 */
-    margin: 60px auto 20px; /* 顶部60px，底部20px */
+    height: calc(100vh - 100px);
+    margin: 90px auto 0; /* 小屏幕的顶栏间距 */
+    border-radius: 12px 12px 0 0;
+  }
+
+  .iframe-modal::after {
+    border-radius: 12px 12px 0 0;
   }
   
   .modal-header {

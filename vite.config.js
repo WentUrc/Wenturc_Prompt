@@ -36,5 +36,12 @@ export default defineConfig({
         drop_debugger: true // 生产环境移除debugger
       }
     }
+  },
+  // 添加服务器配置
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    // 处理前端路由
+    historyApiFallback: true
   }
 })

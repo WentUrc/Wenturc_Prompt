@@ -118,9 +118,8 @@ app.use(pinia)
 app.use(ElementPlus)
 app.use(router)
 
-// 初始化主题
+// 在应用挂载前同步初始化主题
 const themeStore = useThemeStore()
-themeStore.initTheme()
 
 // 初始化用户状态和令牌 - 必须在app.use(pinia)之后
 import { useUserStore } from './stores/user'
@@ -131,6 +130,10 @@ setupAuthInterceptor();
 
 // 初始化用户状态时使用async/await
 const initApp = async () => {
+  // 在应用挂载前立即初始化主题
+  console.log('Main.js: 应用挂载前初始化主题');
+  themeStore.initTheme()
+  
   console.log('应用启动时的用户状态:', {
     isLoggedIn: userStore.isLoggedIn,
     username: userStore.username,
@@ -163,5 +166,17 @@ const checkApiAvailability = async () => {
 app.provide('checkApiAvailability', checkApiAvailability)
 checkApiAvailability()
 
-// 执行初始化
-initApp();
+// 执行初始化 - 确保主题在Vue挂载前完全加载
+async function startApp() {
+  // 立即初始化主题，不等待其他任何内容
+  console.log('App启动: 立即初始化主题');
+  themeStore.initTheme();
+  
+  // 强制等待主题应用
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // 然后初始化应用
+  await initApp();
+}
+
+startApp();

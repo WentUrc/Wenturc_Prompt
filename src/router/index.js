@@ -57,8 +57,46 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+// 添加一个标志来跟踪主题是否已初始化
+let themeInitialized = false
+
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
+  
+  // 确保主题在每次路由切换时都正确初始化
+  try {
+    const { useThemeStore } = await import('../stores/theme')
+    const themeStore = useThemeStore()
+    
+    // 检查是否是直接访问或者主题还未初始化
+    const isDirectAccess = !from.name || from.name === to.name
+    const needsThemeInit = isDirectAccess || !themeInitialized
+    
+    if (needsThemeInit) {
+      console.log('Router guard: 检测到需要主题初始化')
+      console.log('- 路由:', to.path)
+      console.log('- 是否直接访问:', isDirectAccess)
+      console.log('- 主题已初始化:', themeInitialized)
+      
+      // 确保 DOM 已准备好
+      if (document.readyState === 'loading') {
+        await new Promise(resolve => {
+          document.addEventListener('DOMContentLoaded', resolve, { once: true })
+        })
+      }
+      
+      // 初始化主题
+      themeStore.initTheme()
+      themeInitialized = true
+      
+      // 给一个小的延迟确保样式应用
+      await new Promise(resolve => setTimeout(resolve, 50))
+      
+      console.log('Router guard: 主题初始化完成')
+    }
+  } catch (error) {
+    console.error('Router guard: 主题初始化失败:', error)
+  }
   
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')

@@ -416,15 +416,20 @@ onMounted(() => {
 }
 
 /* 深色模式适配 */
-.dark-mode .empty-state,
-:deep(.dark-mode .el-skeleton) {
+:deep(.dark-mode) .empty-state,
+:deep(.dark-mode) .el-skeleton {
   background-color: var(--hero-background, rgba(30, 41, 59, 0.8));
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
 }
 
-.dark-mode .list-header {
+:deep(.dark-mode) .list-header {
   background-color: var(--hero-background, rgba(30, 41, 59, 0.8));
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* 深色模式下的标题颜色 */
+:deep(.dark-mode) .list-header h2 {
+  color: var(--text-color-dark, rgba(255, 255, 255, 0.95));
 }
 
 /* 响应式设计增强 */

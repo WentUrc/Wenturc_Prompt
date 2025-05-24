@@ -65,14 +65,33 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.style.setProperty('--primary-color', color.primary);
     document.documentElement.style.setProperty('--secondary-color', color.secondary);
     document.documentElement.style.setProperty('--accent-color', color.accent);
-  };
-
-  // 初始化主题
+  };  // 初始化主题 - 简化逻辑，确保可靠性
   const initTheme = () => {
-    // 设置主题色
-    applyThemeColor(currentThemeColor.value);
-    // 设置明暗模式
-    document.documentElement.classList.toggle('dark-mode', isDarkMode.value);
+    console.log('Theme Store: 开始初始化主题...');
+    
+    try {
+      // 1. 立即设置深色模式类
+      if (isDarkMode.value) {
+        document.documentElement.classList.add('dark-mode');
+      } else {
+        document.documentElement.classList.remove('dark-mode');
+      }
+      
+      // 2. 强制浏览器重新计算样式
+      document.documentElement.offsetHeight;
+      
+      // 3. 设置主题色
+      applyThemeColor(currentThemeColor.value);
+      
+      // 4. 验证结果
+      setTimeout(() => {
+        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+        console.log('Theme Store: 初始化完成，文字颜色:', textColor);
+      }, 50);
+      
+    } catch (error) {
+      console.error('Theme Store: 初始化失败:', error);
+    }
   };
 
   // 修改切换函数，确保状态切换正确

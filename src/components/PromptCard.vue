@@ -60,10 +60,9 @@
                 <span>查看详情</span>
               </el-button>
             </router-link>
-            
-            <div class="likes">
+              <div class="likes">
               <el-button 
-                type="text" 
+                link 
                 :icon="Star" 
                 @click="handleLike"
                 :class="{ 'liked': prompt.hasLiked }"
@@ -132,9 +131,9 @@ const getTagType = (category) => {
     '设计': 'warning',
     '教育': 'info',
     '商业': 'danger',
-    '通用': ''
+    '通用': 'info'  // 修改为 info 而不是空字符串
   }
-  return typeMap[category] || ''
+  return typeMap[category] || 'info'  // 默认值也改为 info
 }
 
 // 处理点赞事件
@@ -511,43 +510,42 @@ const onAfterEnter = (el) => {
 }
 
 /* 深色模式标签样式覆盖 */
-:global(.dark-mode) :deep(.el-tag) {
+:deep(.dark-mode) .el-tag {
   color: rgba(255, 255, 255, 0.9) !important;
   border-color: var(--border-color-dark, #4b5563) !important;
 }
 
-:global(.dark-mode) :deep(.el-tag--primary) {
+:deep(.dark-mode) .el-tag--primary {
   background-color: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
   color: white !important;
 }
 
-:global(.dark-mode) :deep(.el-tag--success) {
+:deep(.dark-mode) .el-tag--success {
   background-color: #22c55e !important;
   border-color: #22c55e !important;
   color: white !important;
 }
 
-:global(.dark-mode) :deep(.el-tag--warning) {
+:deep(.dark-mode) .el-tag--warning {
   background-color: #f59e0b !important;
   border-color: #f59e0b !important;
   color: white !important;
 }
 
-:global(.dark-mode) :deep(.el-tag--info) {
+:deep(.dark-mode) .el-tag--info {
   background-color: #6b7280 !important;
   border-color: #6b7280 !important;
   color: white !important;
 }
 
-:global(.dark-mode) :deep(.el-tag--danger) {
+:deep(.dark-mode) .el-tag--danger {
   background-color: #ef4444 !important;
   border-color: #ef4444 !important;
   color: white !important;
 }
 
-/* 深色模式默认标签（通用类别） */
-:global(.dark-mode) :deep(.el-tag:not([class*="--"])) {
+:deep(.dark-mode) .el-tag:not([class*="--"]) {
   background-color: var(--secondary-color) !important;
   border-color: var(--secondary-color) !important;
   color: white !important;
