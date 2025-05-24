@@ -1,0 +1,129 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  color-scheme: light dark;
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 统一所有弹出菜单的动画效果 - 使用纯粹的淡入淡出 */
+.el-popper {
+  transition: opacity 0.25s cubic-bezier(0.3, 1, 0.5, 1) !important;
+  opacity: 0;
+  /* 移除可能导致冲突的transform */
+  /* transform: translateY(-5px); */
+  will-change: opacity;
+}
+
+.el-popper.el-popper--hidden {
+  opacity: 0 !important;
+  /* 移除可能导致冲突的transform */
+  /* transform: translateY(-5px) !important; */
+  visibility: hidden;
+}
+
+.el-popper:not(.el-popper--hidden) {
+  opacity: 1 !important;
+  /* 移除可能导致冲突的transform */
+  /* transform: translateY(0) !important; */
+  visibility: visible;
+}
+
+/* 确保圆角一致性 */
+.el-dropdown-menu,
+.el-popper.el-dropdown__popper,
+.fade-dropdown {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 改善动画性能 */
+.el-dropdown-menu {
+  backface-visibility: hidden;
+}
+
+/* 移除下拉菜单箭头 */
+.el-popper__arrow {
+  display: none !important;
+}
+
+/* 全局增强Element Plus下拉菜单的圆角效果 */
+.el-dropdown-menu,
+.el-popper.el-dropdown__popper,
+.el-select-dropdown,
+.el-popover,
+.el-tooltip__popper,
+.el-cascader__dropdown {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 强制所有Element Plus弹出元素使用统一圆角 */
+.el-popper,
+.el-tooltip__popper,
+.el-select-dropdown,
+.el-dropdown-menu,
+.el-popover,
+[role="tooltip"],
+div[role="tooltip"],
+.el-popper[role="tooltip"],
+.el-tooltip__popper[role="tooltip"] {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+/* 删除所有箭头，避免影响圆角 */
+.el-popper__arrow {
+  display: none !important;
+}
+
+/* 确保深色模式下所有弹出元素样式一致 */
+.dark-mode .el-popper,
+.dark-mode .el-tooltip__popper,
+.dark-mode .el-select-dropdown,
+.dark-mode .el-dropdown-menu,
+.dark-mode .el-popover,
+.dark-mode [role="tooltip"] {
+  background-color: var(--background-color-dark, #1f2937) !important;
+  border-color: var(--border-color-dark, #4b5563) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  color: var(--text-color-dark, #e5e7eb) !important;
+}
+
+/* 修改Element Plus CSS变量，影响所有组件 */
+:root {
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 10px;
+  --el-border-radius-round: 30px;
+  --el-tooltip-border-radius: 10px;
+  --el-select-dropdown-border-radius: 10px;
+  --el-popover-border-radius: 10px;
+}
