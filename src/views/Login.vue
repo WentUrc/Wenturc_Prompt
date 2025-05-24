@@ -38,7 +38,7 @@
       <el-form-item>
         <RecaptchaV2
           ref="recaptchaRef"
-          @verify="handleRecaptchaVerify"
+          @verified="handleRecaptchaVerify"
           @error="handleRecaptchaError"
           @expired="handleRecaptchaExpired"
           @load="handleRecaptchaLoad"
