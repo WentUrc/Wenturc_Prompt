@@ -2,11 +2,22 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
+// 获取当前部署环境
+const getDeploymentEnv = () => {
+  if (process.env.VERCEL) {
+    return 'vercel'
+  }
+  if (process.env.GITHUB_ACTIONS) {
+    return 'github'
+  }
+  return 'local'
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  // 设置为根路径，适用于自定义域名
-  base: '/',
+  // 根据不同部署环境设置base
+  base: getDeploymentEnv() === 'github' ? '/' : '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')

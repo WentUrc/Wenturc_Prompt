@@ -203,193 +203,178 @@ const getTagType = (category) => {
 </script>
 
 <style scoped>
-.external-prompt-modal {
-  .external-notice {
-    margin-bottom: 20px;
-  }
-  
-  .external-prompt-content {
-    .prompt-header {
-      margin-bottom: 20px;
-      
-      h3 {
-        margin: 0 0 10px 0;
-        color: var(--el-text-color-primary);
-        font-size: 1.5em;
-        font-weight: 600;
-      }
-      
-      .meta-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        color: var(--el-text-color-regular);
-        font-size: 0.9em;
-        
-        .author, .date {
-          color: var(--el-text-color-secondary);
-        }
-      }
-    }
-    
-    .prompt-description {
-      margin-bottom: 20px;
-      
-      h4 {
-        margin: 0 0 10px 0;
-        color: var(--el-text-color-primary);
-        font-size: 1.1em;
-        font-weight: 500;
-      }
-      
-      p {
-        margin: 0;
-        line-height: 1.6;
-        color: var(--el-text-color-regular);
-      }
-    }
-    
-    .prompt-content {
-      margin-bottom: 20px;
-      
-      h4 {
-        margin: 0 0 10px 0;
-        color: var(--el-text-color-primary);
-        font-size: 1.1em;
-        font-weight: 500;
-      }
-      
-      .content-box {
-        background: var(--el-fill-color-light);
-        border: 1px solid var(--el-border-color);
-        border-radius: 8px;
-        padding: 16px;
-        
-        pre {
-          margin: 0;
-          white-space: pre-wrap;
-          word-wrap: break-word;
-          font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-          font-size: 14px;
-          line-height: 1.5;
-          color: var(--el-text-color-primary);
-        }
-      }
-    }
-    
-    .prompt-stats {
-      margin-top: 20px;
-    }
-  }
-  
-  .error-state {
-    text-align: center;
-    padding: 40px 0;
-  }
-  
-  .dialog-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
+.external-notice {
+  margin-bottom: 20px;
+}
+
+.external-prompt-content {
+  /* 基础样式 */
+}
+
+.prompt-header {
+  margin-bottom: 20px;
+}
+
+.prompt-header h3 {
+  margin: 0 0 10px 0;
+  color: var(--el-text-color-primary);
+  font-size: 1.5em;
+  font-weight: 600;
+}
+
+.meta-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: var(--el-text-color-regular);
+  font-size: 0.9em;
+}
+
+.meta-info .author,
+.meta-info .date {
+  color: var(--el-text-color-secondary);
+}
+
+.prompt-description {
+  margin-bottom: 20px;
+}
+
+.prompt-description h4 {
+  margin: 0 0 10px 0;
+  color: var(--el-text-color-primary);
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.prompt-description p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--el-text-color-regular);
+}
+
+.prompt-content {
+  margin-bottom: 20px;
+}
+
+.prompt-content h4 {
+  margin: 0 0 10px 0;
+  color: var(--el-text-color-primary);
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.content-box {
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.content-box pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--el-text-color-primary);
+}
+
+.prompt-stats {
+  margin-top: 20px;
+}
+
+.error-state {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 /* 深色模式适配 */
-.dark {
-  .external-prompt-modal {
-    .external-prompt-content {
-      .prompt-content .content-box {
-        background: var(--el-fill-color-darker);
-        border-color: var(--el-border-color-darker);
-      }
-    }
-  }
+.dark .content-box {
+  background: var(--el-fill-color-darker);
+  border-color: var(--el-border-color-darker);
 }
 
 /* 移动端适配 */
 @media (max-width: 768px) {
-  .external-prompt-modal {
-    .external-prompt-content {
-      .prompt-header {
-        .meta-info {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
-        }
-      }
-      
-      .prompt-content .content-box {
-        padding: 12px;
-        
-        pre {
-          font-size: 13px;
-        }
-      }
-    }
-    
-    .dialog-footer {
-      flex-direction: column;
-      gap: 8px;
-      
-      .el-button {
-        width: 100%;
-      }
-    }
+  .meta-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .content-box {
+    padding: 12px;
+  }
+  
+  .content-box pre {
+    font-size: 13px;
+  }
+  
+  .dialog-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .dialog-footer .el-button {
+    width: 100%;
   }
 }
 
 @media (max-width: 360px) {
-  .external-prompt-modal {
-    .external-notice {
-      margin-bottom: 15px;
-      
-      p {
-        font-size: 13px;
-      }
-    }
-    
-    .external-prompt-content {
-      .prompt-header {
-        margin-bottom: 15px;
-        
-        h3 {
-          font-size: 1.3em;
-        }
-        
-        .meta-info {
-          font-size: 0.8em;
-        }
-      }
-      
-      .prompt-description {
-        margin-bottom: 15px;
-        
-        h4 {
-          font-size: 1em;
-        }
-        
-        p {
-          font-size: 13px;
-        }
-      }
-      
-      .prompt-content {
-        margin-bottom: 15px;
-        
-        h4 {
-          font-size: 1em;
-        }
-        
-        .content-box {
-          padding: 10px;
-          
-          pre {
-            font-size: 12px;
-            line-height: 1.4;
-          }
-        }
-      }
-    }
+  .external-notice {
+    margin-bottom: 15px;
+  }
+  
+  .external-notice p {
+    font-size: 13px;
+  }
+  
+  .prompt-header {
+    margin-bottom: 15px;
+  }
+  
+  .prompt-header h3 {
+    font-size: 1.3em;
+  }
+  
+  .meta-info {
+    font-size: 0.8em;
+  }
+  
+  .prompt-description {
+    margin-bottom: 15px;
+  }
+  
+  .prompt-description h4 {
+    font-size: 1em;
+  }
+  
+  .prompt-description p {
+    font-size: 13px;
+  }
+  
+  .prompt-content {
+    margin-bottom: 15px;
+  }
+  
+  .prompt-content h4 {
+    font-size: 1em;
+  }
+  
+  .content-box {
+    padding: 10px;
+  }
+  
+  .content-box pre {
+    font-size: 12px;
+    line-height: 1.4;
   }
 }
 </style>
