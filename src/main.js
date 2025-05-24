@@ -30,36 +30,12 @@ axios.interceptors.response.use(
     console.log(`[${new Date().toISOString()}] 收到响应: ${response.status} ${response.statusText}`);
     return response;
   },
-  async error => {
+  error => {
     console.error(`[${new Date().toISOString()}] 请求错误:`, error.response?.status || error.message);
     
-    // 集中处理401错误
+    // 简化401错误处理，避免动态导入
     if (error.response && error.response.status === 401) {
-      // 获取用户存储 - 修改为导入而不是使用useUserStore
-      const pinia = createPinia();
-      const userStoreModule = await import('./stores/user');
-      const { useUserStore } = userStoreModule;
-      const userStore = useUserStore(pinia);
-      
-      // 检查是否是因为令牌问题
-      if (
-        error.response.data?.error === 'token_expired' || 
-        error.response.data?.error === 'invalid_token'
-      ) {
-        console.error('认证令牌错误:', error.response.data.msg);
-        
-        // 避免使用ElMessage，直接返回错误
-        if (userStore.isLoggedIn) {
-          console.warn('登录状态已失效，请重新登录');
-          userStore.logout();
-          
-          // 如果不是登录页面则跳转
-          const currentPath = window.location.pathname;
-          if (currentPath !== '/login' && currentPath !== '/register') {
-            router.push('/login');
-          }
-        }
-      }
+      console.error('认证失败，可能需要重新登录');
     }
     
     return Promise.reject(error);
