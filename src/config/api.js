@@ -16,19 +16,19 @@ const config = {  development: {
     // 生产环境API地址 - 使用实际的API域名
     apiBaseUrl: 'https://apii.wenturc.com',
     wsUrl: 'wss://apii.wenturc.com',
-    // 外部API配置 - 生产环境使用直接访问（需要目标服务器支持CORS）
-    externalApiBaseUrl: 'http://43.156.74.33:8000',
-    // vmoranv API配置 - 生产环境直接访问（需要目标服务器支持CORS）
-    vmoranvApiBaseUrl: 'https://prompt.614447.xyz'
+    // 外部API配置 - 生产环境也使用代理
+    externalApiBaseUrl: 'https://apii.wenturc.com/api/external',
+    // vmoranv API配置 - 生产环境也使用代理
+    vmoranvApiBaseUrl: 'https://apii.wenturc.com/api/vmoranv'
   },
   test: {
     // 测试环境API地址
     apiBaseUrl: 'https://apii.wenturc.com',
     wsUrl: 'wss://apii.wenturc.com',
     // 外部API配置
-    externalApiBaseUrl: 'https://cors-anywhere.herokuapp.com/http://43.156.74.33:8000',
+    externalApiBaseUrl: 'https://apii.wenturc.com/api/external',
     // vmoranv API配置
-    vmoranvApiBaseUrl: 'https://prompt.614447.xyz/api'
+    vmoranvApiBaseUrl: 'https://apii.wenturc.com/api/vmoranv'
   }
 }
 
