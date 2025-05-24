@@ -59,16 +59,16 @@ onUnmounted(() => {
 .back-to-top-btn {
   position: fixed;
   right: 30px;
-  bottom: 60px;
+  bottom: 75px!important;
   width: 55px;
   height: 55px;
-  background: var(--card-background, var(--primary-color));
+  background: var(--primary-color);
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 1000;
+  z-index: 10; /* 低于遮罩层(15)，让遮罩层遮住BackToTop */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   backdrop-filter: blur(10px);
@@ -87,18 +87,19 @@ onUnmounted(() => {
 
 .back-to-top-icon {
   font-size: 34px;
-  color: var(--primary-color);
-  text-shadow: 0 0 6px var(--primary-color), 0 0 6px var(--primary-color);
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 /* 进一步加粗——针对 SVG 线条图标 */
 .back-to-top-icon svg {
-  stroke: var(--primary-color);
-  stroke-width: 6;
+  stroke: white;
+  stroke-width: 8;
   stroke-linecap: round;
   stroke-linejoin: round;
-  fill: var(--primary-color);
+  fill: white;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 .back-to-top-btn:hover .back-to-top-icon {
@@ -147,13 +148,55 @@ onUnmounted(() => {
 
 /* 深色模式适配 */
 .dark-mode .back-to-top-btn {
-  background: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: var(--background-color-dark, #1f2937);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .dark-mode .back-to-top-btn:hover {
-  background: var(--secondary-color);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* 深色模式下的图标样式 */
+.dark-mode .back-to-top-icon {
+  color: var(--primary-color);
+  text-shadow: 0 0 8px var(--primary-color), 0 0 12px var(--primary-color);
+}
+
+.dark-mode .back-to-top-icon svg {
+  stroke: var(--primary-color);
+  fill: var(--primary-color);
+  stroke-width: 8;
+  filter: drop-shadow(0 0 4px var(--primary-color));
+}
+
+.dark-mode .back-to-top-btn:hover .back-to-top-icon {
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .back-to-top-btn:hover .back-to-top-icon svg {
+  stroke: white;
+  fill: white;
+  stroke-width: 8;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* 深色模式下的渐变边框效果 */
+.dark-mode .back-to-top-btn::before {
+  background: linear-gradient(
+    135deg, 
+    var(--secondary-color), 
+    var(--primary-color) 50%,
+    var(--accent-color, #67c23a)
+  );
+  opacity: 0.6;
+}
+
+.dark-mode .back-to-top-btn:hover::before {
+  opacity: 0.9;
 }
 
 /* 移动端适配 */
@@ -199,6 +242,15 @@ onUnmounted(() => {
   
   .back-to-top-btn:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* 深色模式下的高分辨率适配 */
+  .dark-mode .back-to-top-btn {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+  
+  .dark-mode .back-to-top-btn:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   }
 }
 </style> 

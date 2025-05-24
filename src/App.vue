@@ -7,16 +7,27 @@
     </div>
     <div class="app-overlay"></div>
     
+    <!-- 移动端菜单全屏遮罩层 -->
+    <transition name="mask-fade">
+      <div 
+        v-if="showMobileMask" 
+        class="mobile-menu-mask" 
+        @click="handleMaskClick"
+      ></div>
+    </transition>
+    
+    <!-- 把AppHeader移出el-container，避免层叠上下文问题 -->
+    <AppHeader 
+      ref="appHeaderRef"
+      :headerLoaded="isHeaderLoaded"
+      @logout="logout" 
+      @update:darkMode="refreshTheme"
+      @update:themeColor="refreshTheme"
+      @mobile-menu-toggle="handleMobileMenuToggle"
+    />
+    
     <el-config-provider>
       <el-container class="full-height">
-        <!-- 移除isDarkMode属性 -->
-        <AppHeader 
-          :headerLoaded="isHeaderLoaded"
-          @logout="logout" 
-          @update:darkMode="refreshTheme"
-          @update:themeColor="refreshTheme"
-        />
-        
         <el-main>
           <router-view v-slot="{ Component }">
             <transition name="fade" mode="out-in">
@@ -60,6 +71,8 @@ const backgroundUrl = ref('https://api.wenturc.com');
 const footerRef = ref(null);
 const isFooterVisible = ref(false);
 const isHeaderLoaded = ref(false); // 改为控制首次加载动画
+const appHeaderRef = ref(null); // AppHeader组件的引用
+const showMobileMask = ref(false); // 移动端菜单遮罩层状态
 
 // 监听主题变化的简化方法
 const refreshTheme = () => {
@@ -76,6 +89,22 @@ watch([currentThemeColor, isDarkMode], () => {
 const logout = () => {
   userStore.logout();
   router.push('/login');
+};
+
+// 处理移动菜单状态变化
+const handleMobileMenuToggle = (isOpen) => {
+  showMobileMask.value = isOpen;
+  console.log('移动菜单状态:', isOpen ? '打开' : '关闭');
+};
+
+// 处理遮罩层点击
+const handleMaskClick = () => {
+  // 调用AppHeader组件的关闭菜单方法
+  if (appHeaderRef.value && appHeaderRef.value.closeMobileMenu) {
+    appHeaderRef.value.closeMobileMenu();
+  }
+  showMobileMask.value = false;
+  console.log('点击遮罩层，关闭移动菜单');
 };
 
 // 滚动监听函数
@@ -224,7 +253,8 @@ const loadBackgroundImage = () => {
 .app-container {
   min-height: 100vh;
   transition: all 0.3s;
-  position: relative; /* 确保可以放置背景和遮罩层 */
+  position: relative; /* 创建层叠上下文，统一管理所有子组件的z-index */
+  z-index: 0; /* 建立层叠上下文基准 */
 }
 
 /* 背景图样式 - 添加加载动画 */
@@ -275,7 +305,7 @@ const loadBackgroundImage = () => {
   flex-direction: column;
   min-height: 100vh;
   position: relative;
-  z-index: 10; /* 保持内容在最上层 */
+  z-index: 10; /* 低于遮罩层(15)，让遮罩层遮住内容 */
   background-color: transparent; /* 确保容器本身是透明的 */
 }
 
@@ -291,6 +321,8 @@ const loadBackgroundImage = () => {
   /* 修改为透明背景，让所有卡片内容自己处理背景 */
   background-color: transparent;
   border-radius: 8px;
+  position: relative;
+  z-index: 10; /* 低于遮罩层(15)，让遮罩层遮住内容 */
 }
 
 /* Footer程序坞样式 */
@@ -307,7 +339,7 @@ const loadBackgroundImage = () => {
   border-radius: 20px 20px 0 0;
   box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.2);
   margin-top: 16px;
-  z-index: 1001;
+  z-index: 10; /* 低于遮罩层(15)，让遮罩层遮住Footer */
   /* 自下而上的滑入动画 */
   transform: translateY(60px);
   opacity: 0;
@@ -467,7 +499,7 @@ const loadBackgroundImage = () => {
 /* 移动端响应式调整内容padding */
 @media (max-width: 768px) {
   .el-main {
-    padding-top: 88px; /* 移动端顶栏64px + 间距24px */
+    padding-top: 100px; /* 移动端顶栏80px + 间距20px */
     padding-bottom: 24px; /* 恢复正常的底部间距 */
     padding-left: 16px;
     padding-right: 16px;
@@ -476,10 +508,54 @@ const loadBackgroundImage = () => {
 
 @media (max-width: 480px) {
   .el-main {
-    padding-top: 80px; /* 小屏幕顶栏56px + 间距24px */
+    padding-top: 100px; /* 小屏幕顶栏80px + 间距20px */
     padding-bottom: 20px; /* 恢复正常的底部间距 */
     padding-left: 12px;
     padding-right: 12px;
+  }
+}
+
+/* 移动端遮罩层 */
+.mobile-menu-mask {
+  position: fixed;
+  top: 0; /* 从页面顶部开始，覆盖整个屏幕 */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 11; /* 刚好高于内容层(10)，低于顶栏(10000)和移动菜单(10001) */
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+}
+
+/* 遮罩层动画 */
+.mask-fade-enter-active,
+.mask-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.mask-fade-enter-from,
+.mask-fade-leave-to {
+  opacity: 0;
+  backdrop-filter: blur(0px);
+}
+
+/* 深色模式下的遮罩层 */
+.dark-mode .mobile-menu-mask {
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+}
+
+/* 移动端遮罩层响应式调整 */
+@media (max-width: 768px) {
+  .mobile-menu-mask {
+    top: 0; /* 移动端也从页面顶部开始 */
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-menu-mask {
+    top: 0; /* 小屏幕也从页面顶部开始 */
   }
 }
 </style>

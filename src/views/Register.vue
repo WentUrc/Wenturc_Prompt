@@ -2,7 +2,7 @@
   <div class="register-container">
     <div class="register-form-wrapper">
       <h2>注册账号</h2>
-      <el-form :model="registerForm" :rules="rules" ref="registerFormRef" label-width="100px">
+      <el-form :model="registerForm" :rules="rules" ref="registerFormRef" :label-width="isMobile ? '0px' : '100px'" :label-position="isMobile ? 'top' : 'left'">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="registerForm.username" placeholder="请输入用户名"></el-input>
         </el-form-item>
@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
@@ -48,6 +48,23 @@ const router = useRouter()
 const userStore = useUserStore()
 const registerFormRef = ref(null)
 const loading = ref(false)
+const windowWidth = ref(window.innerWidth)
+
+// 响应式判断是否为移动端
+const isMobile = computed(() => windowWidth.value <= 768)
+
+// 监听窗口大小变化
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
 
 // 修复：将form改名为registerForm，确保模板和脚本使用相同的变量名
 const registerForm = reactive({
@@ -281,21 +298,136 @@ h2 {
   color: var(--error-color-dark, #f89898);
 }
 
-@media (max-width: 480px) {
+/* 响应式设计增强 */
+@media (max-width: 768px) {
   .register-container {
-    margin: 40px auto;
-    padding: 30px 20px;
-    width: 90%;
+    padding: 25px 20px;
+    margin: 30px auto;
+  }
+  
+  .register-form-wrapper {
+    padding: 30px 25px;
+    max-width: unset;
+    width: 100%;
+    margin: 0;
   }
   
   h2 {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
+    margin-bottom: 25px;
+  }
+  
+  :deep(.el-form-item__label) {
+    padding-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  :deep(.el-form--label-top .el-form-item__label) {
+    margin-bottom: 8px;
+  }
+  
+  .submit-btn {
+    width: 100% !important;
+    height: 46px !important;
+    font-size: 15px !important;
+  }
+  
+  .login-link {
+    margin-top: 20px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    margin: 20px auto;
+    padding: 20px 15px;
+  }
+  
+  .register-form-wrapper {
+    padding: 25px 20px;
+    border-radius: 12px;
+  }
+  
+  .register-form-wrapper::before {
+    border-radius: 14px;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
     margin-bottom: 20px;
   }
   
-  :deep(.el-button--primary) {
-    height: 40px;
+  :deep(.el-input__inner) {
+    height: 42px;
     font-size: 15px;
+  }
+  
+  :deep(.el-form-item) {
+    margin-bottom: 18px;
+  }
+  
+  :deep(.el-form-item__label) {
+    font-size: 13px;
+    padding-bottom: 6px;
+  }
+  
+  .submit-btn {
+    height: 42px !important;
+    font-size: 14px !important;
+    border-radius: 21px !important;
+  }
+  
+  .login-link {
+    margin-top: 18px;
+    font-size: 12px;
+  }
+  
+  .login-link a {
+    font-size: 13px;
+  }
+}
+
+/* 超小屏幕适配 */
+@media (max-width: 360px) {
+  .register-container {
+    margin: 15px auto;
+    padding: 15px 10px;
+  }
+  
+  .register-form-wrapper {
+    padding: 20px 15px;
+  }
+  
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+  }
+  
+  :deep(.el-input__inner) {
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .submit-btn {
+    height: 40px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* 平板横屏适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .register-container {
+    padding: 35px 25px;
+  }
+  
+  .register-form-wrapper {
+    max-width: 480px;
+    padding: 35px;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
   }
 }
 </style>

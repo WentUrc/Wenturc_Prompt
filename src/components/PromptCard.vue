@@ -345,7 +345,7 @@ const onAfterEnter = (el) => {
   flex-direction: column;
   border-radius: 16px;
   position: relative;
-  z-index: 1;
+  z-index: 10;
   transition: all 0.3s ease;
   background-color: var(--card-background, #fff);
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);

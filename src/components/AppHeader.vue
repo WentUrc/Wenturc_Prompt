@@ -1,8 +1,8 @@
 <template>
   <el-header class="app-header" :class="{'shadow-header': isScrolled, 'header-visible': isHeaderLoaded}" ref="appHeaderRef">
-    <div class="header-content">
+    <div class="header-content">        
       <router-link to="/" class="logo-link">
-        <h1 class="logo"><span class="logo-icon">✨</span> Prompt收集站</h1>
+        <h1 class="logo"><img src="/img/logo.png" alt="WentUrc" class="logo-icon" draggable="false" /> WentUrc Prompt</h1>
       </router-link>
       
       <div class="nav-links">
@@ -96,7 +96,7 @@
     
     <!-- 移动端下拉菜单 -->
     <transition name="slide-fade">
-      <div class="mobile-menu" v-if="showMobileMenu" @click.stop ref="mobileMenuRef">
+      <div class="mobile-menu" v-if="showMobileMenu" @click.stop>
         <router-link to="/" @click="closeMobileMenu">首页</router-link>
         <router-link to="/prompts" @click="closeMobileMenu">浏览</router-link>
         <router-link v-if="isLoggedIn" to="/create" @click="closeMobileMenu">创建</router-link>
@@ -156,13 +156,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, readonly } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../stores/user';
 import { useThemeStore } from '../stores/theme';
 import { Menu, Close, Moon, Sunny, ArrowDown, Check, SwitchButton } from '@element-plus/icons-vue';
 
-const emit = defineEmits(['logout', 'update:darkMode', 'update:themeColor']);
+const emit = defineEmits(['logout', 'update:darkMode', 'update:themeColor', 'mobile-menu-toggle']);
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -177,7 +177,6 @@ const isDropdownOpen = ref(false);
 const isHeaderLoaded = ref(false); // 改为首次加载动画状态
 const themeDropdownRef = ref(null); // 添加主题下拉菜单的ref
 const appHeaderRef = ref(null); // 添加顶栏的ref
-const mobileMenuRef = ref(null); // 添加移动端菜单的ref
 
 // 添加header动画的props接收
 const props = defineProps({
@@ -215,30 +214,46 @@ const setThemeColor = (colorName) => {
 };
 
 // 移动菜单操作
+let savedScrollTop = 0; // 保存滚动位置
+
 const toggleMobileMenu = () => {
   showMobileMenu.value = !showMobileMenu.value;
   
+  // 通知父组件移动菜单状态变化
+  emit('mobile-menu-toggle', showMobileMenu.value);
+  
   // 控制背景滚动
   if (showMobileMenu.value) {
-    // 菜单打开时禁用背景滚动
+    // 菜单打开时禁用背景滚动并保存当前滚动位置
+    savedScrollTop = window.pageYOffset || document.documentElement.scrollTop;
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedScrollTop}px`;
     document.body.style.width = '100%';
-    updateMobileMenuTheme();
   } else {
-    // 菜单关闭时恢复背景滚动
+    // 菜单关闭时恢复背景滚动和滚动位置
     document.body.style.overflow = '';
     document.body.style.position = '';
+    document.body.style.top = '';
     document.body.style.width = '';
+    // 恢复滚动位置
+    window.scrollTo(0, savedScrollTop);
   }
 };
 
 const closeMobileMenu = () => {
   showMobileMenu.value = false;
-  // 恢复背景滚动
+  
+  // 通知父组件移动菜单状态变化
+  emit('mobile-menu-toggle', false);
+  
+  // 恢复背景滚动和滚动位置
   document.body.style.overflow = '';
   document.body.style.position = '';
+  document.body.style.top = '';
   document.body.style.width = '';
+  // 恢复滚动位置
+  window.scrollTo(0, savedScrollTop);
 };
 
 const handleMobileLogout = () => {
@@ -259,10 +274,13 @@ const handleScroll = () => {
 const handleResize = () => {
   if (window.innerWidth > 768 && showMobileMenu.value) {
     showMobileMenu.value = false;
-    // 当从移动端切换到桌面端时，恢复背景滚动
+    // 当从移动端切换到桌面端时，恢复背景滚动和滚动位置
     document.body.style.overflow = '';
     document.body.style.position = '';
+    document.body.style.top = '';
     document.body.style.width = '';
+    // 恢复滚动位置
+    window.scrollTo(0, savedScrollTop);
   }
 };
 
@@ -278,23 +296,6 @@ const updateDropdownTheme = () => {
       }
     }
   }, 0);
-};
-
-// 监听主题切换，处理移动端菜单样式
-const updateMobileMenuTheme = () => {
-  // 更新移动菜单中的样式
-  if (showMobileMenu.value) {
-    setTimeout(() => {
-      const menu = document.querySelector('.mobile-menu');
-      if (menu) {
-        if (themeStore.isDarkMode) {
-          menu.classList.add('mobile-dark-theme');
-        } else {
-          menu.classList.remove('mobile-dark-theme');
-        }
-      }
-    }, 0);
-  }
 };
 
 // 修改dropdown切换处理
@@ -315,7 +316,6 @@ const handleClickOutside = (event) => {
 // 监听主题变化，同时更新下拉菜单和移动菜单的样式
 const stopWatch = watch(() => themeStore.isDarkMode, () => {
   updateDropdownTheme();
-  updateMobileMenuTheme();
 });
 
 onMounted(() => {
@@ -342,14 +342,34 @@ onUnmounted(() => {
   document.removeEventListener('click', updateDropdownTheme);
   document.removeEventListener('click', handleClickOutside);
   
-  // 组件卸载时确保恢复背景滚动
+  // 组件卸载时确保恢复背景滚动和滚动位置
   document.body.style.overflow = '';
   document.body.style.position = '';
+  document.body.style.top = '';
   document.body.style.width = '';
+  // 如果有保存的滚动位置，恢复它
+  if (savedScrollTop > 0) {
+    window.scrollTo(0, savedScrollTop);
+  }
+});
+
+// 导出方法供父组件调用
+defineExpose({
+  closeMobileMenu
 });
 </script>
 
 <style scoped>
+/* 导入Showcard Gothic字体 */
+@font-face {
+  font-family: 'Showcard Gothic';
+  src: url('/font/Showcard-Gothic.woff2') format('woff2'),
+       url('/font/Showcard-Gothic.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 .app-header {
   /* 程序坞样式改进 */
   background: var(--primary-color);
@@ -367,7 +387,7 @@ onUnmounted(() => {
   transform: translateX(-50%) translateY(-60px); /* 桌面端与footer保持一致的滑入距离 */
   width: 90%;
   max-width: 1200px;
-  z-index: 1001; /* 确保顶栏在全屏菜单之上 */
+  z-index: 10000!important; /* 确保高于遮罩层(9999) */
   transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), 
               opacity 0.5s ease,
               box-shadow 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -492,9 +512,9 @@ onUnmounted(() => {
   .app-header {
     top: 0;
     width: 94%;
-    height: 70px !important; /* 强制设置移动端高度 */
-    min-height: 70px !important;
-    max-height: 70px !important;
+    height: 80px !important; /* 修正移动端高度为80px */
+    min-height: 80px !important;
+    max-height: 80px !important;
     border-radius: 0 0 16px 16px;
     transform: translateX(-50%) translateY(-50px); /* 移动端与footer保持一致的滑入距离 */
   }
@@ -531,11 +551,6 @@ onUnmounted(() => {
   .logo {
     font-size: 1.1rem;
   }
-  
-  /* 小屏幕菜单高度调整 */
-  .mobile-menu {
-    height: calc(100vh - 100px) !important; /* 小屏幕：考虑更小的顶栏和间隙 */
-  }
 }
 
 .header-content {
@@ -564,11 +579,6 @@ onUnmounted(() => {
   .logo {
     font-size: 1.1rem;
   }
-  
-  /* 小屏幕菜单高度调整 */
-  .mobile-menu {
-    height: calc(100vh - 100px) !important; /* 小屏幕：考虑更小的顶栏和间隙 */
-  }
 }
 
 .logo-link {
@@ -576,6 +586,14 @@ onUnmounted(() => {
   color: white;
   display: flex;
   align-items: center;
+  /* 禁用拖拽 */
+  user-select: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  /* 应用字体 */
+  font-family: 'Showcard Gothic', sans-serif;
 }
 
 .logo {
@@ -587,11 +605,46 @@ onUnmounted(() => {
   transition: transform 0.2s;
   display: flex;
   align-items: center;
+  /* 继承父元素的字体 */
+  font-family: inherit;
 }
 
 .logo-icon {
-  margin-right: 8px;
-  font-size: 1.2em;
+  margin-right: 10px;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  position: relative;
+  transition: all 0.3s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+}
+
+.logo-icon::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg, 
+    var(--primary-color), 
+    var(--secondary-color) 50%,
+    var(--accent-color, #67c23a) 100%
+  );
+  border-radius: 10px;
+  z-index: -1;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.logo:hover .logo-icon::before {
+  opacity: 0.8;
 }
 
 .logo:hover {
@@ -796,61 +849,64 @@ onUnmounted(() => {
 
 /* 移动端菜单 */
 .mobile-menu {
-  display: none;
-  position: absolute; /* 保持相对于顶栏的定位 */
-  top: calc(100% + 10px); /* 从顶栏下方开始，保持间隙 */
-  left: 0;
-  width: 100%;
-  height: calc(100vh - 120px); /* 计算高度：屏幕高度 - 顶栏高度 - 顶部间隙 - 底部间隙 */
-  background-color: white; /* 改为白色背景 */
-  border-radius: 16px; /* 保持程序坞圆角 */
-  padding: 8px 0; /* 保持原有padding */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* 保持程序坞阴影 */
-  z-index: 100;
-  overflow-y: auto; /* 允许内容滚动 */
+  position: fixed;
+  top: 80px; /* 桌面端顶栏高度70px + 10px间隙 */
+  left: 50%;
+  width: 90%;
+  max-width: 1200px;
+  min-height: fit-content;
+  max-height: calc(100vh - 140px);
+  height: auto;
+  background-color: white;
+  border-radius: 16px;
+  padding: 8px 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 10001; /* 确保高于遮罩层(9999)和顶栏(10000) */
+  overflow-y: auto;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: translateX(-50%);
 }
 
 .mobile-menu a {
   display: flex;
   align-items: center;
   text-decoration: none;
-  padding: 14px 24px; /* 恢复原来的padding */
-  border-left: 3px solid transparent; /* 恢复原来的边框宽度 */
-  color: #333; /* 改为深色文字 */
+  padding: 14px 24px;
+  border-left: 3px solid transparent;
+  color: #333;
   font-weight: 500;
-  font-size: 15px; /* 恢复原来的字体大小 */
+  font-size: 15px;
   transition: all 0.2s ease;
-  text-shadow: none; /* 移除白色背景下不需要的阴影 */
+  text-shadow: none;
 }
 
 .mobile-menu a:hover, .mobile-menu a.router-link-active {
-  background-color: rgba(0, 0, 0, 0.08); /* 参考深色模式，使用浅色半透明背景 */
+  background-color: rgba(0, 0, 0, 0.08);
   border-left-color: var(--primary-color);
-  color: var(--primary-color); /* 使用主题色文字 */
-  text-shadow: none; /* 浅色背景下不需要阴影 */
+  color: var(--primary-color);
+  text-shadow: none;
 }
 
-/* 单独处理hover状态，保持更强的视觉反馈 */
 .mobile-menu a:hover {
-  background-color: var(--primary-color); /* 悬停时仍使用主题色背景 */
-  color: white; /* 悬停时文字变白 */
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* 悬停时添加阴影 */
+  background-color: var(--primary-color);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* 移动端主题设置 - 完善样式 */
+/* 移动端主题设置 */
 .mobile-theme-settings {
-  padding: 15px 20px; /* 恢复原来的padding */
-  background-color: rgba(0, 0, 0, 0.05); /* 改为浅灰色背景 */
-  margin: 10px 0; /* 恢复原来的margin */
-  border-radius: 8px; /* 恢复原来的圆角 */
+  padding: 15px 20px;
+  background-color: rgba(0, 0, 0, 0.05);
+  margin: 10px 0;
+  border-radius: 8px;
 }
 
 .mobile-theme-header {
-  color: #333; /* 改为深色文字 */
+  color: #333;
   font-weight: bold;
   margin-bottom: 15px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* 改为浅色边框 */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   font-size: 16px;
 }
 
@@ -860,7 +916,7 @@ onUnmounted(() => {
 
 .mobile-theme-section > span {
   display: block;
-  color: #666; /* 改为深色文字 */
+  color: #666;
   margin-bottom: 12px;
   font-weight: 500;
 }
@@ -877,7 +933,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.05); /* 改为浅灰色背景 */
+  background-color: rgba(0, 0, 0, 0.05);
   padding: 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -886,12 +942,12 @@ onUnmounted(() => {
 }
 
 .mobile-mode-option:hover {
-  background-color: rgba(0, 0, 0, 0.1); /* 悬停时稍深一些 */
+  background-color: rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 
 .mobile-mode-option.active {
-  background-color: var(--primary-color); /* 激活时使用主题色 */
+  background-color: var(--primary-color);
   border-color: var(--primary-color);
   box-shadow: 0 2px 8px rgba(var(--primary-color-rgb, 64, 158, 255), 0.3);
 }
@@ -899,20 +955,20 @@ onUnmounted(() => {
 .mobile-mode-option i {
   font-size: 20px;
   margin-bottom: 8px;
-  color: var(--primary-color); /* 图标使用主题色 */
+  color: var(--primary-color);
 }
 
 .mobile-mode-option.active i {
-  color: white; /* 激活状态下图标为白色 */
+  color: white;
 }
 
 .mobile-mode-option span {
-  color: #333; /* 深色文字 */
+  color: #333;
   font-size: 14px;
 }
 
 .mobile-mode-option.active span {
-  color: white; /* 激活状态下文字为白色 */
+  color: white;
 }
 
 /* 移动端颜色选择 */
@@ -929,8 +985,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(0, 0, 0, 0.1); /* 添加浅色默认边框 */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* 调整阴影适配白色背景 */
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
   cursor: pointer;
 }
@@ -940,15 +996,13 @@ onUnmounted(() => {
 }
 
 .mobile-color-option.active {
-  border-color: white; /* 内边框使用白色 */
-  box-shadow: 0 0 0 3px var(--primary-color), 0 2px 8px rgba(0, 0, 0, 0.2); /* 外边框使用主题色，增加厚度 */
+  border-color: white;
+  box-shadow: 0 0 0 3px var(--primary-color), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .check-icon {
   color: white;
-  font-weight: bold;
-  font-size: 16px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); /* 增强阴影确保可见性 */
+  font-size: 18px;
 }
 
 /* 深色模式下的移动菜单 */
@@ -958,7 +1012,6 @@ onUnmounted(() => {
   border: 1px solid var(--border-color-dark, #4b5563);
 }
 
-/* 深色模式下移动端菜单链接样式 */
 .dark-mode .mobile-menu a {
   color: var(--text-color-dark, #e5e7eb);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
@@ -972,7 +1025,6 @@ onUnmounted(() => {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-/* 确保在深色主题下移动端主题设置有合适的对比度 */
 .dark-mode .mobile-theme-settings {
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -999,14 +1051,13 @@ onUnmounted(() => {
 .dark-mode .mobile-mode-option.active {
   background-color: rgba(255, 255, 255, 0.15);
   border-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
+  box-shadow: 0 2px 8px rgba(var(--primary-color-rgb, 64, 158, 255), 0.3);
 }
 
 .dark-mode .mobile-mode-option span {
   color: var(--text-color-dark, #e5e7eb);
 }
 
-/* 深色模式下移动端模式选择的图标和文字 */
 .dark-mode .mobile-mode-option i {
   color: var(--primary-color);
 }
@@ -1019,32 +1070,41 @@ onUnmounted(() => {
   color: white;
 }
 
-/* 深色模式下移动端颜色选择 */
 .dark-mode .mobile-color-option {
-  border-color: rgba(255, 255, 255, 0.2); /* 深色模式下使用浅色边框 */
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .dark-mode .mobile-color-option.active {
-  border-color: var(--background-color-dark, #1f2937); /* 内边框使用背景色 */
-  box-shadow: 0 0 0 3px var(--primary-color), 0 2px 8px rgba(0, 0, 0, 0.4); /* 外边框使用主题色，深色模式阴影更深 */
+  border-color: var(--background-color-dark, #1f2937);
+  box-shadow: 0 0 0 3px var(--primary-color), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* 修复移动端点击反馈 */
+/* 移动端适配 */
 @media (max-width: 768px) {
-  /* 移动端菜单项点击状态 */
-  .mobile-menu a:active,
-  .mobile-mode-option:active,
-  .mobile-color-option:active {
-    opacity: 0.7;
-  }
-  
-  /* 调整移动端菜单高度 */
   .mobile-menu {
-    width: 100%;
-    height: calc(100vh - 110px); /* 移动端：屏幕高度 - 顶栏70px - 顶部间隙10px - 底部间隙30px */
-    max-height: calc(100vh - 110px);
-    overflow-y: auto;
+    top: 90px; /* 移动端顶栏高度80px + 10px间隙 */
+    width: 94%;
+    max-height: calc(100vh - 120px);
   }
+}
+
+@media (max-width: 480px) {
+  .mobile-menu {
+    top: 90px; /* 小屏幕顶栏高度80px + 10px间隙 */
+    max-height: calc(100vh - 100px);
+  }
+}
+
+/* 移动端菜单动画 */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(-50%) translateY(-10px);
+  opacity: 0;
 }
 
 /* 响应式设计 - 移动端适配 */
@@ -1064,12 +1124,6 @@ onUnmounted(() => {
     justify-content: center;
   }
   
-  .mobile-menu {
-    display: block;
-    top: calc(100% + 10px); /* 恢复相对于顶栏的位置 */
-    height: calc(100vh - 110px) !important; /* 移动端菜单高度 */
-  }
-  
   .logo {
     font-size: 1.2rem;
   }
@@ -1082,22 +1136,6 @@ onUnmounted(() => {
 @media (min-width: 769px) {
   .mobile-menu {
     display: none !important;
-  }
-}
-
-/* 小屏幕适配 */
-@media (max-width: 480px) {
-  .header-content {
-    padding: 0 16px;
-  }
-  
-  .logo {
-    font-size: 1.1rem;
-  }
-  
-  /* 小屏幕菜单高度调整 */
-  .mobile-menu {
-    height: calc(100vh - 100px) !important; /* 小屏幕：考虑更小的顶栏和间隙 */
   }
 }
 
@@ -1383,7 +1421,36 @@ onUnmounted(() => {
 
 .color-option i {
   color: white;
-  font-weight: bold;
   font-size: 18px;
+}
+
+/* 移动端菜单遮罩层 */
+.mobile-menu-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99; /* 在菜单下方，但在其他内容上方 */
+  backdrop-filter: blur(2px);
+}
+
+/* 遮罩层动画 */
+.mask-fade-enter-active,
+.mask-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.mask-fade-enter-from,
+.mask-fade-leave-to {
+  opacity: 0;
+  backdrop-filter: blur(0px);
+}
+
+/* 深色模式下的遮罩层 */
+.dark-mode .mobile-menu-mask {
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
 }
 </style>
