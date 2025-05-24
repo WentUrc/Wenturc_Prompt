@@ -1,0 +1,66 @@
+name: Deploy Frontend to GitHub Pages
+
+# 触发条件: 当 main 分支的 frontend 目录有变化时运行
+on:
+  push:
+    branches:
+      - main  # 监听 main 分支的推送
+    paths:
+      - 'frontend/**'  # 只有当 frontend 目录有变化时才触发
+  # 手动触发选项
+  workflow_dispatch:
+
+# 权限配置
+permissions:
+  contents: write  # 允许写入分支
+  pages: write
+  id-token: write
+
+# 只允许一个并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend  # 设置工作目录为 frontend
+    steps:
+      # Step 1: 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的历史记录
+
+      # Step 2: 设置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'  # 使用 npm 缓存
+          cache-dependency-path: './frontend/package-lock.json'
+
+      # Step 3: 安装依赖
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: 构建项目
+      - name: Build with Vite
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      # Step 5: 创建 .nojekyll 文件
+      - name: Create .nojekyll file
+        run: echo "" > dist/.nojekyll
+
+      # Step 6: 部署到 gh-pages 分支
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4.4.3
+        with:
+          branch: gh-pages  # 将文件部署到 gh-pages 分支
+          folder: frontend/dist  # 使用 frontend/dist 目录作为静态文件源
+          clean: true  # 清理目标分支中的旧文件
+          single-commit: true  # 使用单次提交而不是保留历史
