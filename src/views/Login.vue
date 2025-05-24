@@ -1,15 +1,51 @@
 <template>
   <div class="login-container">
     <h2>登录</h2>
-    <el-form :model="loginForm" :rules="rules" ref="loginFormRef">
+    <el-form 
+      :model="loginForm" 
+      :rules="rules" 
+      ref="loginFormRef"
+      @keyup.enter="submitForm"
+    >
       <el-form-item prop="username">
-        <el-input v-model="loginForm.username" placeholder="用户名"></el-input>
+        <el-input 
+          v-model="loginForm.username" 
+          placeholder="用户名"
+          prefix-icon="User"
+          @keyup.enter="focusPassword"
+        ></el-input>
       </el-form-item>
       <el-form-item prop="password">
-        <el-input v-model="loginForm.password" type="password" placeholder="密码"></el-input>
+        <el-input 
+          v-model="loginForm.password" 
+          :type="showPassword ? 'text' : 'password'" 
+          placeholder="密码"
+          prefix-icon="Lock"
+          ref="passwordInput"
+        >
+          <template #suffix>
+            <el-icon 
+              class="password-toggle" 
+              @click="togglePasswordVisibility"
+              :class="{ 'is-visible': showPassword }"
+            >
+              <View v-if="showPassword" />
+              <Hide v-else />
+            </el-icon>
+          </template>
+        </el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm" :loading="loading" class="submit-btn">登录</el-button>
+        <RecaptchaV2
+          ref="recaptchaRef"
+          @verify="handleRecaptchaVerify"
+          @error-callback="handleRecaptchaError"
+          @expired-callback="handleRecaptchaExpired"
+          class="recaptcha-container"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm" :loading="loading" :disabled="!isRecaptchaVerified" class="submit-btn">登录</el-button>
       </el-form-item>
     </el-form>
     <div class="register-link">
@@ -25,11 +61,18 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { getApiBaseUrl } from '../config/api'
+import { User, Lock, View, Hide } from '@element-plus/icons-vue'
+import { RecaptchaV2 } from 'vue3-recaptcha-v2'
 
 const router = useRouter()
 const userStore = useUserStore()
 const loginFormRef = ref(null)
+const passwordInput = ref(null)
+const recaptchaRef = ref(null)
 const loading = ref(false)
+const showPassword = ref(false)
+const isRecaptchaVerified = ref(false)
+const recaptchaToken = ref(null)
 
 const loginForm = reactive({
   username: '',
@@ -45,8 +88,43 @@ const rules = {
   ]
 }
 
+// 切换密码可见性
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
+// 聚焦密码输入框
+const focusPassword = () => {
+  passwordInput.value?.focus()
+}
+
+// 处理 reCAPTCHA 验证成功
+const handleRecaptchaVerify = (token) => {
+  isRecaptchaVerified.value = true
+  recaptchaToken.value = token
+}
+
+// 处理 reCAPTCHA 错误
+const handleRecaptchaError = () => {
+  isRecaptchaVerified.value = false
+  recaptchaToken.value = null
+  ElMessage.error('人机验证加载失败，请刷新页面重试')
+}
+
+// 处理 reCAPTCHA 过期
+const handleRecaptchaExpired = () => {
+  isRecaptchaVerified.value = false
+  recaptchaToken.value = null
+  ElMessage.warning('人机验证已过期，请重新验证')
+}
+
 const submitForm = async () => {
   if (!loginFormRef.value) return
+  
+  if (!isRecaptchaVerified.value) {
+    ElMessage.warning('请先完成人机验证')
+    return
+  }
   
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
@@ -56,7 +134,8 @@ const submitForm = async () => {
         
         const response = await axios.post(`${getApiBaseUrl()}/api/login`, {
           username: loginForm.username,
-          password: loginForm.password
+          password: loginForm.password,
+          recaptchaToken: recaptchaToken.value
         })
         
         console.log('登录响应:', response.data)
@@ -65,33 +144,33 @@ const submitForm = async () => {
         userStore.login({
           username: response.data.username,
           access_token: response.data.access_token,
-          user_id: response.data.user_id // 保存用户ID
+          user_id: response.data.user_id
         })
-        
-        // 验证axios默认头是否被正确设置
-        console.log('登录后的默认请求头:', 
-          axios.defaults.headers.common['Authorization'] || '未设置')
         
         ElMessage.success('登录成功')
         router.push('/')
       } catch (error) {
-        console.error('登录失败:', error);
+        console.error('登录失败:', error)
         
-        // 增强错误处理，提供更具体的错误信息
         if (error.response) {
-          // 服务器响应了，但状态码不在2xx范围内
-          const errorMsg = error.response.data?.msg || error.response.statusText || '服务器错误';
-          ElMessage.error(`登录失败: ${errorMsg}`);
+          const errorMsg = error.response.data?.msg || error.response.statusText || '服务器错误'
+          ElMessage.error(`登录失败: ${errorMsg}`)
         } else if (error.request) {
-          // 请求已发送，但没有收到响应
-          ElMessage.error('服务器连接失败，请检查后端服务是否运行');
+          ElMessage.error('服务器连接失败，请检查后端服务是否运行')
         } else {
-          // 其他错误
-          ElMessage.error(`请求出错: ${error.message}`);
+          ElMessage.error(`请求出错: ${error.message}`)
+        }
+        
+        // 重置 reCAPTCHA
+        if (recaptchaRef.value) {
+          recaptchaRef.value.reset()
+          isRecaptchaVerified.value = false
+          recaptchaToken.value = null
         }
       } finally {
-        loading.value = false;
-      }    }
+        loading.value = false
+      }
+    }
   })
 }
 </script>
@@ -253,6 +332,122 @@ h2 {
   
   .submit-btn {
     height: 40px;
+  }
+}
+
+/* 密码可见性切换按钮样式 */
+.password-toggle {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color-secondary, #909399);
+}
+
+.password-toggle:hover {
+  color: var(--primary-color);
+}
+
+.password-toggle.is-visible {
+  color: var(--primary-color);
+}
+
+/* 深色模式适配 */
+:global(.dark-mode) .password-toggle {
+  color: var(--text-color-secondary-dark, rgba(255, 255, 255, 0.7));
+}
+
+:global(.dark-mode) .password-toggle:hover,
+:global(.dark-mode) .password-toggle.is-visible {
+  color: var(--primary-color-light, #79bbff);
+}
+
+/* reCAPTCHA 容器样式 */
+.recaptcha-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* reCAPTCHA iframe 容器样式 */
+.recaptcha-container :deep(div) {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* hover 效果 */
+.recaptcha-container:hover :deep(div) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 加载动画 */
+.recaptcha-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(var(--primary-color-rgb), 0.1),
+    rgba(var(--secondary-color-rgb), 0.1)
+  );
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.recaptcha-container:not(:has(iframe))::before {
+  opacity: 1;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+/* 深色模式适配 */
+:global(.dark-mode) .recaptcha-container {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+:global(.dark-mode) .recaptcha-container :deep(div) {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+:global(.dark-mode) .recaptcha-container:hover :deep(div) {
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
+}
+
+:global(.dark-mode) .recaptcha-container::before {
+  background: linear-gradient(
+    45deg,
+    rgba(var(--primary-color-rgb-dark), 0.1),
+    rgba(var(--secondary-color-rgb-dark), 0.1)
+  );
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .recaptcha-container {
+    margin: 15px -10px;
+    transform: scale(0.9);
+  }
+  
+  .recaptcha-container:hover :deep(div) {
+    transform: translateY(-1px);
   }
 }
 </style>
