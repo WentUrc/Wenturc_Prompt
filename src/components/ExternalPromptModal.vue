@@ -69,7 +69,7 @@
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
-import { getExternalApiBaseUrl } from '../config/api'
+import { getApiBaseUrl } from '../config/api'
 
 const props = defineProps({
   modelValue: {
@@ -110,15 +110,16 @@ const fetchExternalPromptDetail = async () => {
   
   loading.value = true
   try {
-    const externalApiUrl = getExternalApiBaseUrl()
+    const apiBaseUrl = getApiBaseUrl()
     
-    // 创建新的axios实例，不使用默认的baseURL
-    const externalAxios = axios.create({
-      baseURL: '',
-      timeout: 10000
-    })
+    // 使用我们自己的后端代理来请求数据
+    // 确保ID是数字类型
+    const promptId = Number(props.prompt.id)
+    if (isNaN(promptId)) {
+      throw new Error('无效的Prompt ID格式')
+    }
     
-    const response = await externalAxios.get(`${externalApiUrl}/prompts/${props.prompt.id}`)
+    const response = await axios.get(`${apiBaseUrl}/api/external/prompts/${promptId}`)
     
     if (response.data) {
       promptDetail.value = {
@@ -324,6 +325,7 @@ const getTagType = (category) => {
   
   .dialog-footer .el-button {
     width: 100%;
+    margin: 0;
   }
 }
 

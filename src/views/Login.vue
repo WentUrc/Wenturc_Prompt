@@ -1,12 +1,39 @@
 <template>
   <div class="login-container">
     <h2>登录</h2>
-    <el-form :model="loginForm" :rules="rules" ref="loginFormRef">
+    <el-form 
+      :model="loginForm" 
+      :rules="rules" 
+      ref="loginFormRef"
+      @keyup.enter="submitForm"
+    >
       <el-form-item prop="username">
-        <el-input v-model="loginForm.username" placeholder="用户名"></el-input>
+        <el-input 
+          v-model="loginForm.username" 
+          placeholder="用户名"
+          prefix-icon="User"
+          @keyup.enter="focusPassword"
+        ></el-input>
       </el-form-item>
       <el-form-item prop="password">
-        <el-input v-model="loginForm.password" type="password" placeholder="密码"></el-input>
+        <el-input 
+          v-model="loginForm.password" 
+          :type="showPassword ? 'text' : 'password'" 
+          placeholder="密码"
+          prefix-icon="Lock"
+          ref="passwordInput"
+        >
+          <template #suffix>
+            <el-icon 
+              class="password-toggle" 
+              @click="togglePasswordVisibility"
+              :class="{ 'is-visible': showPassword }"
+            >
+              <View v-if="showPassword" />
+              <Hide v-else />
+            </el-icon>
+          </template>
+        </el-input>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="submitForm" :loading="loading" class="submit-btn">登录</el-button>
@@ -25,11 +52,14 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { getApiBaseUrl } from '../config/api'
+import { User, Lock, View, Hide } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 const loginFormRef = ref(null)
+const passwordInput = ref(null)
 const loading = ref(false)
+const showPassword = ref(false)
 
 const loginForm = reactive({
   username: '',
@@ -45,6 +75,16 @@ const rules = {
   ]
 }
 
+// 切换密码可见性
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
+// 聚焦密码输入框
+const focusPassword = () => {
+  passwordInput.value?.focus()
+}
+
 const submitForm = async () => {
   if (!loginFormRef.value) return
   
@@ -52,7 +92,7 @@ const submitForm = async () => {
     if (valid) {
       loading.value = true
       try {
-        console.log('发送登录请求...')
+        ElMessage.info('正在发送登录请求...')
         
         const response = await axios.post(`${getApiBaseUrl()}/api/login`, {
           username: loginForm.username,
@@ -65,33 +105,26 @@ const submitForm = async () => {
         userStore.login({
           username: response.data.username,
           access_token: response.data.access_token,
-          user_id: response.data.user_id // 保存用户ID
+          user_id: response.data.user_id
         })
-        
-        // 验证axios默认头是否被正确设置
-        console.log('登录后的默认请求头:', 
-          axios.defaults.headers.common['Authorization'] || '未设置')
         
         ElMessage.success('登录成功')
         router.push('/')
       } catch (error) {
-        console.error('登录失败:', error);
+        console.error('登录失败:', error)
         
-        // 增强错误处理，提供更具体的错误信息
         if (error.response) {
-          // 服务器响应了，但状态码不在2xx范围内
-          const errorMsg = error.response.data?.msg || error.response.statusText || '服务器错误';
-          ElMessage.error(`登录失败: ${errorMsg}`);
+          const errorMsg = error.response.data?.msg || error.response.statusText || '服务器错误'
+          ElMessage.error(`登录失败: ${errorMsg}`)
         } else if (error.request) {
-          // 请求已发送，但没有收到响应
-          ElMessage.error('服务器连接失败，请检查后端服务是否运行');
+          ElMessage.error('服务器连接失败，请检查后端服务是否运行')
         } else {
-          // 其他错误
-          ElMessage.error(`请求出错: ${error.message}`);
+          ElMessage.error(`请求出错: ${error.message}`)
         }
       } finally {
-        loading.value = false;
-      }    }
+        loading.value = false
+      }
+    }
   })
 }
 </script>
@@ -254,5 +287,54 @@ h2 {
   .submit-btn {
     height: 40px;
   }
+}
+
+/* 密码可见性切换按钮样式 */
+.password-toggle {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color-secondary, #909399);
+}
+
+.password-toggle:hover {
+  color: var(--primary-color);
+}
+
+.password-toggle.is-visible {
+  color: var(--primary-color);
+}
+
+/* 深色模式适配 */
+:global(.dark-mode) .password-toggle {
+  color: var(--text-color-secondary-dark, rgba(255, 255, 255, 0.7));
+}
+
+:global(.dark-mode) .password-toggle:hover,
+:global(.dark-mode) .password-toggle.is-visible {
+  color: var(--primary-color-light, #79bbff);
+}
+
+/* 开发模式提示样式 */
+.dev-mode-notice {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.dev-notice {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+:deep(.dev-notice .el-alert__content) {
+  justify-content: center;
+}
+
+/* 深色模式适配 */
+:global(.dark-mode) .dev-notice {
+  background-color: var(--el-color-info-dark);
+  color: var(--el-color-white);
 }
 </style>

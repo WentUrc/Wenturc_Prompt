@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
@@ -20,7 +21,7 @@ export default defineConfig({
   base: '/',
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
   build: {
@@ -51,7 +52,7 @@ export default defineConfig({
     }
   },  // 添加服务器配置
   server: {
-    host: '0.0.0.0',
+    host: 'dev.prompt-collection.com',
     port: 5173,
     // 处理前端路由
     historyApiFallback: true,    // 添加代理配置解决CORS问题
