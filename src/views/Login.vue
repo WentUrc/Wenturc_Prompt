@@ -39,8 +39,9 @@
         <RecaptchaV2
           ref="recaptchaRef"
           @verify="handleRecaptchaVerify"
-          @error-callback="handleRecaptchaError"
-          @expired-callback="handleRecaptchaExpired"
+          @error="handleRecaptchaError"
+          @expired="handleRecaptchaExpired"
+          @load="handleRecaptchaLoad"
           class="recaptcha-container"
         />
       </el-form-item>
@@ -100,26 +101,34 @@ const focusPassword = () => {
 
 // 处理 reCAPTCHA 验证成功
 const handleRecaptchaVerify = (token) => {
+  ElMessage.success('人机验证成功！')
   isRecaptchaVerified.value = true
   recaptchaToken.value = token
 }
 
 // 处理 reCAPTCHA 错误
 const handleRecaptchaError = () => {
+  ElMessage.error('人机验证加载失败，错误代码：' + Date.now())
   isRecaptchaVerified.value = false
   recaptchaToken.value = null
-  ElMessage.error('人机验证加载失败，请刷新页面重试')
 }
 
 // 处理 reCAPTCHA 过期
 const handleRecaptchaExpired = () => {
+  ElMessage.warning('人机验证已过期，时间：' + new Date().toLocaleTimeString())
   isRecaptchaVerified.value = false
   recaptchaToken.value = null
-  ElMessage.warning('人机验证已过期，请重新验证')
+}
+
+// 处理 reCAPTCHA 加载完成
+const handleRecaptchaLoad = () => {
+  ElMessage.info('reCAPTCHA 已加载')
 }
 
 const submitForm = async () => {
   if (!loginFormRef.value) return
+  
+  ElMessage.info('验证状态：' + (isRecaptchaVerified.value ? '已验证' : '未验证'))
   
   if (!isRecaptchaVerified.value) {
     ElMessage.warning('请先完成人机验证')
@@ -130,7 +139,7 @@ const submitForm = async () => {
     if (valid) {
       loading.value = true
       try {
-        console.log('发送登录请求...')
+        ElMessage.info('正在发送登录请求...')
         
         const response = await axios.post(`${getApiBaseUrl()}/api/login`, {
           username: loginForm.username,
@@ -449,5 +458,29 @@ h2 {
   .recaptcha-container:hover :deep(div) {
     transform: translateY(-1px);
   }
+}
+
+/* 开发模式提示样式 */
+.dev-mode-notice {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.dev-notice {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+:deep(.dev-notice .el-alert__content) {
+  justify-content: center;
+}
+
+/* 深色模式适配 */
+:global(.dark-mode) .dev-notice {
+  background-color: var(--el-color-info-dark);
+  color: var(--el-color-white);
 }
 </style>
