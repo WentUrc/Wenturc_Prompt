@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useUserStore } from '../stores/user'
 
 // 使用懒加载导入所有页面组件，并指定chunk名称
@@ -10,13 +10,11 @@ const PromptDetail = () => import(/* webpackChunkName: "prompts" */ '../views/Pr
 const CreatePrompt = () => import(/* webpackChunkName: "prompts" */ '../views/CreatePrompt.vue')
 const JwtDebug = () => import(/* webpackChunkName: "debug" */ '../views/JwtDebug.vue')
 
-// 根据环境确定base路径
-const base = import.meta.env.MODE === 'production' 
-  ? '/' // 如果你的网站部署在根目录，就用 '/'
-  : '/' // 开发环境使用 '/'
+// 使用根路径，因为已经绑定了自定义域名
+const base = '/'
 
 const router = createRouter({
-  history: createWebHistory(base),
+  history: createWebHashHistory(base),
   routes: [
     {
       path: '/',
