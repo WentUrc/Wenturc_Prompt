@@ -16,7 +16,7 @@ const base = import.meta.env.MODE === 'production'
   : '/' // 开发环境使用 '/'
 
 const router = createRouter({
-  history: createWebHistory(base),
+  history: createWebHistory(),
   routes: [
     {
       path: '/',
