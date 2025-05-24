@@ -265,20 +265,39 @@ const getTagType = (category) => {
 }
 
 .content-box {
-  background: var(--el-fill-color-light);
-  border: 1px solid var(--el-border-color);
+  padding: 20px;
+  margin: 20px 0;
   border-radius: 8px;
-  padding: 16px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: auto;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  transition: all var(--transition-duration);
 }
 
 .content-box pre {
+  font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
   margin: 0;
   white-space: pre-wrap;
-  word-wrap: break-word;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--el-text-color-primary);
+  color: var(--text-color);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* 深色模式下的内容框样式 */
+:deep(.dark-mode) .content-box {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-color: var(--border-color);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+:deep(.dark-mode) .content-box pre {
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .prompt-stats {
