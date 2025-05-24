@@ -38,7 +38,8 @@
       <el-form-item>
         <RecaptchaV2
           ref="recaptchaRef"
-          @verified="handleRecaptchaVerify"
+          :sitekey="getRecaptchaSiteKey()"
+          @verify="handleRecaptchaVerify"
           @error="handleRecaptchaError"
           @expired="handleRecaptchaExpired"
           @load="handleRecaptchaLoad"
@@ -62,6 +63,7 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { getApiBaseUrl } from '../config/api'
+import { getRecaptchaSiteKey } from '../config/recaptcha'
 import { User, Lock, View, Hide } from '@element-plus/icons-vue'
 import { RecaptchaV2 } from 'vue3-recaptcha-v2'
 
