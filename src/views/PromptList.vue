@@ -736,6 +736,17 @@ onMounted(() => {
   gap: 24px;
 }
 
+/* 外部网格特殊样式 */
+.external-grid {
+  width: 100%;
+  overflow: hidden; /* 防止子元素超出 */
+}
+
+.external-grid .prompt-card-item {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .prompt-card-item {
   animation: card-fade-in 0.6s ease-out forwards;
   animation-delay: calc(var(--card-index) * 0.1s);
@@ -1004,7 +1015,8 @@ onMounted(() => {
 }
 
 /* 针对极小屏幕（如320px）的进一步优化 */
-@media (max-width: 320px) {  /* 进一步增加外部区域的顶部间隔 */
+@media (max-width: 320px) {
+  /* 进一步增加外部区域的顶部间隔 */
   .external-section {
     margin-top: 70px;
     padding-top: 45px;
@@ -1012,6 +1024,30 @@ onMounted(() => {
   
   .section-title-row h3 {
     font-size: 1rem;
+  }
+  
+  /* 确保外部卡片在极小屏幕上不会超出 */
+  .external-grid .prompt-card-item {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+}
+
+/* 针对375px以下屏幕的外部卡片特殊处理 */
+@media (max-width: 375px) {
+  .external-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+    width: 100%;
+    overflow: hidden; /* 防止卡片超出容器 */
+  }
+  
+  .external-grid .prompt-card-item {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0; /* 允许缩小 */
+    box-sizing: border-box;
   }
 }
 </style>

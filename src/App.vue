@@ -43,7 +43,17 @@
           ref="footerRef" 
           :class="{ 'footer-visible': isFooterVisible && !isIframeModalVisible }"
         >
-          <p>WentUrc Prompt © {{ new Date().getFullYear() }}</p>
+          <div class="footer-content">
+            <div class="footer-links">
+              <a href="https://wenturc.com" target="_blank">Wenturc</a>
+              <a href="https://note.wenturc.com" target="_blank">WentUrc Note</a>
+              <a href="https://chat.wenturc.com" target="_blank">WentUrc Chat</a>
+              <a href="https://github.com/WentUrc/Wenturc_Prompt" target="_blank">GitHub</a>
+            </div>
+            <div class="footer-copyright">
+              <p>WentUrc Prompt © {{ new Date().getFullYear() }}</p>
+            </div>
+          </div>
         </el-footer>
       </el-container>
     </el-config-provider>
@@ -577,6 +587,80 @@ const loadBackgroundImage = () => {
 @media (max-width: 480px) {
   .mobile-menu-mask {
     top: 0; /* 小屏幕也从页面顶部开始 */
+  }
+}
+
+.footer-content {
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 32px;
+}
+
+.footer-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 0.95em;
+  position: relative;
+  padding: 4px 0;
+  transition: color 0.3s;
+  font-weight: 500;
+}
+
+.footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #fff;
+  transition: width 0.3s ease;
+}
+
+.footer-links a:hover::after {
+  width: 100%;
+}
+
+.footer-copyright {
+  font-size: 0.9em;
+  color: white;
+  font-weight: 500;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .footer-content {
+    padding: 12px;
+  }
+
+  .footer-links {
+    display: none;
+  }
+  
+  .footer-copyright {
+    font-size: 0.8em;
+    text-align: center;
+    width: 100%;
+    font-weight: 500;
+  }
+}
+
+/* 更小屏幕的适配 */
+@media (max-width: 360px) {
+  .footer-links {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .footer-links a {
+    padding: 6px;
   }
 }
 </style>
