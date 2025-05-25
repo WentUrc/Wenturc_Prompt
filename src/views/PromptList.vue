@@ -739,7 +739,7 @@ onMounted(() => {
 /* 外部网格特殊样式 */
 .external-grid {
   width: 100%;
-  overflow: hidden; /* 防止子元素超出 */
+  /* 移除 overflow: hidden，因为它会裁剪虚线边框 */
 }
 
 .external-grid .prompt-card-item {
@@ -1040,7 +1040,7 @@ onMounted(() => {
     grid-template-columns: 1fr !important;
     gap: 10px;
     width: 100%;
-    overflow: hidden; /* 防止卡片超出容器 */
+    /* 移除 overflow: hidden，保持虚线边框可见 */
   }
   
   .external-grid .prompt-card-item {
