@@ -634,7 +634,8 @@ const onAfterEnter = (el) => {
     padding: 10px;
     height: auto; /* 允许自适应高度 */
     min-height: 280px!important; /* 设置最小高度 */
-    max-width: 85%!important; /* 设置最小高度 */
+    width: 100%; /* 确保卡片占满容器宽度 */
+    box-sizing: border-box; /* 确保内边距包含在宽度内 */
   }
   
   :global(.prompt-card .prompt-title) {
