@@ -1,6 +1,12 @@
 <template>
   <div class="review-history">
-    <!-- 搜索筛选区域 -->    <el-card class="search-card" shadow="hover">
+    <!-- 审核历史标题 -->
+    <div class="history-header">
+      <h2 class="history-title">审核历史管理</h2>
+      <p class="history-subtitle">查看和管理所有内容审核记录</p>
+    </div>
+
+    <!-- 搜索筛选区域 --><el-card class="search-card" shadow="hover">
       <div class="search-filters">
         <el-row :gutter="20">
           <el-col :span="6">
@@ -588,64 +594,230 @@ export default {
 
 <style scoped>
 .review-history {
-  padding: 20px;
+  padding: 25px 30px;
+  background: var(--hero-background);
+  border-radius: 16px;
+  position: relative;
+}
+
+.review-history::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.review-history:hover::before {
+  opacity: 1;
+}
+
+.history-header {
+  text-align: center;
+  margin-bottom: 35px;
+  padding: 25px 35px;
+  background: var(--hero-background);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.history-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color), var(--primary-color));
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  border-radius: 16px;
+  opacity: 0.1;
+  transition: opacity 0.3s ease;
+}
+
+.history-header:hover::before {
+  opacity: 0.2;
+}
+
+.history-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, var(--text-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  z-index: 1;
+}
+
+.history-subtitle {
+  font-size: 1rem;
+  color: var(--text-color-secondary);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  opacity: 0.9;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .search-card {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  background: var(--external-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.search-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.search-card:hover::before {
+  opacity: 0.7;
 }
 
 .search-filters {
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .stats-row {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .stat-card {
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  background: var(--external-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.stat-card.approved {
-  border-left: 4px solid #67c23a;
+.stat-card:hover::before {
+  opacity: 0.8;
 }
 
-.stat-card.rejected {
-  border-left: 4px solid #f56c6c;
+.stat-card.approved::before {
+  border-color: #67c23a;
+}
+
+.stat-card.rejected::before {
+  border-color: #f56c6c;
 }
 
 .stat-content {
-  padding: 10px 0;
+  padding: 18px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-value {
-  font-size: 28px;
-  font-weight: bold;
-  color: #409eff;
-  margin-bottom: 5px;
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #666;
+  font-size: 15px;
+  color: var(--text-color-secondary);
+  font-weight: 500;
 }
 
 .table-card {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  background: var(--external-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.table-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.table-card:hover::before {
+  opacity: 0.7;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+  position: relative;
+  z-index: 1;
 }
 
 .header-actions {
@@ -654,23 +826,47 @@ export default {
   align-items: center;
 }
 
+.header-actions .el-button {
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.header-actions .el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.header-actions .el-button[type="danger"] {
+  background: var(--danger-color, #f56c6c);
+}
+
 .prompt-title-link {
-  color: #409eff;
+  color: var(--primary-color);
   text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .prompt-title-link:hover {
+  color: var(--accent-color);
   text-decoration: underline;
 }
 
 .text-muted {
-  color: #999;
+  color: var(--text-color-tertiary);
   font-style: italic;
 }
 
 .pagination-wrapper {
-  margin-top: 20px;
+  margin-top: 25px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .review-detail {
@@ -680,40 +876,95 @@ export default {
 .content-preview {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .content-preview h4 {
-  margin-bottom: 10px;
-  color: #333;
+  margin-bottom: 12px;
+  color: var(--text-color);
+  font-weight: 600;
 }
 
 .prompt-content {
-  background: #f5f5f5;
-  padding: 15px;
-  border-radius: 4px;
+  background: var(--background-light);
+  padding: 18px;
+  border-radius: 12px;
   max-height: 200px;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  border: 1px solid var(--border-color);
+  font-family: var(--font-mono);
+  line-height: 1.6;
 }
 
 .dialog-footer {
   text-align: right;
 }
 
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .review-history {
+    background: var(--external-bg-dark);
+  }
+  
+  .search-card,
+  .stat-card,
+  .table-card {
+    background: var(--external-bg-dark);
+  }
+  
+  .prompt-content {
+    background: var(--background-dark);
+  }
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .review-history {
-    padding: 10px;
+    padding: 20px 15px;
   }
   
   .search-filters .el-col {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
   
   .stats-row .el-col {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .stat-value {
+    font-size: 28px;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .header-actions .el-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-history {
+    padding: 15px 10px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .prompt-content {
+    padding: 12px;
+    font-size: 14px;
   }
 }
 </style>

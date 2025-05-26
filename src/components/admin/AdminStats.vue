@@ -1,5 +1,11 @@
 <template>
   <div class="admin-stats">
+    <!-- 管理统计标题 -->
+    <div class="stats-header">
+      <h2 class="stats-title">管理统计面板</h2>
+      <p class="stats-subtitle">系统运行状况与用户活跃度概览</p>
+    </div>
+
     <!-- 概览统计卡片 -->
     <el-row :gutter="20" class="overview-stats">
       <el-col :span="6">
@@ -694,50 +700,163 @@ export default {
 
 <style scoped>
 .admin-stats {
-  padding: 20px;
+  padding: 25px 30px;
+  background: var(--hero-background);
+  border-radius: 16px;
+  position: relative;
+}
+
+.admin-stats::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.admin-stats:hover::before {
+  opacity: 1;
+}
+
+.stats-header {
+  text-align: center;
+  margin-bottom: 35px;
+  padding: 25px 35px;
+  background: var(--hero-background);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.stats-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color), var(--primary-color));
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  border-radius: 16px;
+  opacity: 0.1;
+  transition: opacity 0.3s ease;
+}
+
+.stats-header:hover::before {
+  opacity: 0.2;
+}
+
+.stats-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, var(--text-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  z-index: 1;
+}
+
+.stats-subtitle {
+  font-size: 1rem;
+  color: var(--text-color-secondary);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  opacity: 0.9;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .overview-stats {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .stat-card {
   cursor: pointer;
-  transition: all 0.3s;
-  border-radius: 8px;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  border-radius: 14px;
+  background: var(--external-bg);
+  border: 2px dashed transparent;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.stat-card.users {
-  border-left: 4px solid #409eff;
+.stat-card:hover::before {
+  opacity: 0.8;
 }
 
-.stat-card.prompts {
-  border-left: 4px solid #67c23a;
+.stat-card.users::before {
+  border-color: #409eff;
 }
 
-.stat-card.reviews {
-  border-left: 4px solid #e6a23c;
+.stat-card.prompts::before {
+  border-color: #67c23a;
 }
 
-.stat-card.pending {
-  border-left: 4px solid #f56c6c;
+.stat-card.reviews::before {
+  border-color: #e6a23c;
+}
+
+.stat-card.pending::before {
+  border-color: #f56c6c;
 }
 
 .stat-content {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 18px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-icon {
-  font-size: 36px;
-  margin-right: 15px;
-  color: #409eff;
+  font-size: 42px;
+  margin-right: 18px;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.1);
 }
 
 .stat-info {
@@ -745,22 +864,28 @@ export default {
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 5px;
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--text-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+  transition: all 0.3s ease;
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 5px;
+  font-size: 15px;
+  color: var(--text-color-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .stat-trend {
-  font-size: 12px;
+  font-size: 13px;
   display: flex;
   align-items: center;
+  font-weight: 600;
 }
 
 .stat-trend.positive {
@@ -776,67 +901,164 @@ export default {
 }
 
 .charts-section {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .chart-card {
-  height: 400px;
+  height: 420px;
+  background: var(--external-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.chart-card:hover::before {
+  opacity: 0.7;
 }
 
 .chart-container {
-  height: 300px;
+  height: 320px;
   width: 100%;
+  padding: 10px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .detail-stats {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .table-card {
-  height: 400px;
+  height: 420px;
+  background: var(--external-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.table-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.table-card:hover::before {
+  opacity: 0.7;
 }
 
 .performance-stats {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .performance-card {
-  border-radius: 8px;
+  border-radius: 14px;
+  background: var(--external-bg);
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.performance-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.performance-card:hover::before {
+  opacity: 0.7;
 }
 
 .performance-metric {
   text-align: center;
-  padding: 20px 10px;
+  padding: 25px 15px;
+  position: relative;
+  z-index: 1;
 }
 
 .metric-title {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 10px;
+  font-size: 15px;
+  color: var(--text-color-secondary);
+  margin-bottom: 12px;
+  font-weight: 500;
 }
 
 .metric-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
 }
 
 .metric-subtitle {
-  font-size: 12px;
-  color: #999;
+  font-size: 13px;
+  color: var(--text-color-tertiary);
+  font-weight: 400;
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .admin-stats {
+    background: var(--external-bg-dark);
+  }
+  
+  .stat-card,
+  .chart-card,
+  .table-card,
+  .performance-card {
+    background: var(--external-bg-dark);
+  }
 }
 
 /* 响应式设计 */
@@ -852,29 +1074,62 @@ export default {
 
 @media (max-width: 768px) {
   .admin-stats {
-    padding: 10px;
+    padding: 20px 15px;
   }
   
   .overview-stats .el-col {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
   }
   
   .stat-content {
     flex-direction: column;
     text-align: center;
+    padding: 15px;
   }
   
   .stat-icon {
     margin-right: 0;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    font-size: 36px;
   }
   
   .chart-card {
-    height: 300px;
+    height: 320px;
   }
   
   .chart-container {
-    height: 200px;
+    height: 220px;
+  }
+  
+  .performance-metric {
+    padding: 20px 10px;
+  }
+  
+  .metric-value {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-stats {
+    padding: 15px 10px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+  
+  .metric-value {
+    font-size: 20px;
+  }
+  
+  .chart-card,
+  .table-card {
+    height: 280px;
+  }
+  
+  .chart-container {
+    height: 180px;
   }
 }
 </style>

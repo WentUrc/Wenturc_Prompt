@@ -1,5 +1,11 @@
 <template>
   <div class="user-management">
+    <!-- 用户管理标题 -->
+    <div class="management-title-header">
+      <h2 class="management-main-title">用户管理中心</h2>
+      <p class="management-subtitle">管理系统用户权限与统计信息</p>
+    </div>
+
     <div class="management-header">
       <h3>用户管理</h3>
       <div class="header-actions">
@@ -349,87 +355,295 @@ defineExpose({
 <style scoped>
 .user-management {
   height: 100%;
+  padding: 25px 30px;
+  background: var(--hero-background);
+  border-radius: 16px;
+  position: relative;
+}
+
+.user-management::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.user-management:hover::before {
+  opacity: 1;
+}
+
+.management-title-header {
+  text-align: center;
+  margin-bottom: 35px;
+  padding: 25px 35px;
+  background: var(--hero-background);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.management-title-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color), var(--primary-color));
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  border-radius: 16px;
+  opacity: 0.1;
+  transition: opacity 0.3s ease;
+}
+
+.management-title-header:hover::before {
+  opacity: 0.2;
+}
+
+.management-main-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, var(--text-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  z-index: 1;
+}
+
+.management-subtitle {
+  font-size: 1rem;
+  color: var(--text-color-secondary);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  opacity: 0.9;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .management-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   flex-wrap: wrap;
   gap: 15px;
+  position: relative;
+  z-index: 1;
 }
 
 .management-header h3 {
   margin: 0;
-  color: var(--el-text-color-primary);
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--text-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: center;
 }
 
+.header-actions .el-button {
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.header-actions .el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
 .user-stats {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-card {
   text-align: center;
-  transition: transform 0.2s;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  background: var(--external-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:hover::before {
+  opacity: 0.8;
 }
 
 .stat-item {
-  padding: 10px;
+  padding: 18px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-value {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: var(--el-color-primary);
-  margin-bottom: 5px;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  color: var(--el-text-color-regular);
+  font-size: 0.95rem;
+  color: var(--text-color-secondary);
+  font-weight: 500;
 }
 
 .table-card {
-  min-height: 400px;
+  min-height: 420px;
+  background: var(--external-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  border: 2px dashed transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.table-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--warning-color);
+  border-radius: 14px;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.table-card:hover::before {
+  opacity: 0.7;
 }
 
 .username-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
 }
 
 .role-tag {
   font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .content-stats {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: 0.85rem;
+  gap: 3px;
+  font-size: 0.9rem;
+  color: var(--text-color-secondary);
 }
 
 .pagination-container {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 25px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 表格内按钮样式 - 使用纯色而非渐变 */
+.table-card :deep(.el-button-group .el-button) {
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  margin-right: 4px;
+}
+
+.table-card :deep(.el-button-group .el-button:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.table-card :deep(.el-button-group .el-button[type="warning"]) {
+  background: var(--warning-color, #e6a23c);
+}
+
+.table-card :deep(.el-button-group .el-button[type="info"]) {
+  background: var(--info-color, #909399);
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .user-management {
+    background: var(--external-bg-dark);
+  }
+  
+  .stat-card,
+  .table-card {
+    background: var(--external-bg-dark);
+  }
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .user-management {
+    padding: 20px 15px;
+  }
+  
   .management-header {
     flex-direction: column;
     align-items: stretch;
@@ -441,27 +655,35 @@ defineExpose({
   }
   
   .user-stats {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
   }
   
   .user-stats .el-col {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .stat-value {
+    font-size: 1.8rem;
   }
   
   .table-card :deep(.el-table) {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
   
   .username-cell {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 6px;
   }
 }
 
 @media (max-width: 480px) {
+  .user-management {
+    padding: 15px 10px;
+  }
+  
   .header-actions {
-    gap: 8px;
+    gap: 10px;
   }
   
   .header-actions .el-input,
@@ -470,17 +692,23 @@ defineExpose({
   }
   
   .stat-value {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
   
   .table-card :deep(.el-table .el-button-group) {
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
   }
   
   .table-card :deep(.el-table .el-button) {
-    padding: 4px 8px;
-    font-size: 0.75rem;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    margin-right: 0;
+    width: 100%;
+  }
+  
+  .content-stats {
+    font-size: 0.8rem;
   }
 }
 </style>
