@@ -332,7 +332,8 @@ export default {
       avgResponseTime: 0,
       dbQueryTime: 0,
       cpuUsage: 0,
-      memoryUsage: 0,      diskUsage: 0,
+      memoryUsage: 0,
+      diskUsage: 0,
       onlineUsers: 0,
       todayActiveUsers: 0
     })
@@ -358,42 +359,66 @@ export default {
       } catch (error) {
         ElMessage.error('加载概览数据失败')
       }
-    }
-
-    // 初始化图表
+    }    // 初始化图表
     const initCharts = async () => {
       await nextTick()
       
-      // 等待一小段时间确保DOM完全渲染
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // 等待一小段时间确保DOM完全渲染和CSS样式应用
+      await new Promise(resolve => setTimeout(resolve, 200))
       
       try {
         // 确保DOM元素存在且有尺寸
-        if (userGrowthChart.value && userGrowthChart.value.clientWidth > 0) {
-          if (!userChart) {
-            userChart = echarts.init(userGrowthChart.value)
+        if (userGrowthChart.value) {
+          // 检查元素尺寸
+          const userChartRect = userGrowthChart.value.getBoundingClientRect()
+          if (userChartRect.width > 0 && userChartRect.height > 0) {
+            if (!userChart) {
+              userChart = echarts.init(userGrowthChart.value)
+              console.log('用户增长图表初始化成功', `尺寸: ${userChartRect.width}x${userChartRect.height}`)
+            } else {
+              userChart.resize()
+            }
           } else {
-            userChart.resize()
+            console.warn('用户增长图表DOM元素尺寸为0:', userChartRect)
+            // 如果尺寸为0，延迟重试
+            setTimeout(() => initCharts(), 100)
+            return
           }
+        } else {
+          console.warn('用户增长图表DOM元素未找到')
         }
         
-        if (reviewStatusChart.value && reviewStatusChart.value.clientWidth > 0) {
-          if (!reviewChart) {
-            reviewChart = echarts.init(reviewStatusChart.value)
+        if (reviewStatusChart.value) {
+          // 检查元素尺寸
+          const reviewChartRect = reviewStatusChart.value.getBoundingClientRect()
+          if (reviewChartRect.width > 0 && reviewChartRect.height > 0) {
+            if (!reviewChart) {
+              reviewChart = echarts.init(reviewStatusChart.value)
+              console.log('审核状态图表初始化成功', `尺寸: ${reviewChartRect.width}x${reviewChartRect.height}`)
+            } else {
+              reviewChart.resize()
+            }
           } else {
-            reviewChart.resize()
+            console.warn('审核状态图表DOM元素尺寸为0:', reviewChartRect)
+            // 如果尺寸为0，延迟重试
+            setTimeout(() => initCharts(), 100)
+            return
           }
-        }      } catch (error) {
+        } else {
+          console.warn('审核状态图表DOM元素未找到')
+        }
+      } catch (error) {
         console.error('初始化图表失败:', error)
       }
-    }
-
-    // 加载用户增长数据
+    }// 加载用户增长数据
     const loadUserGrowthData = async () => {
       try {
         const response = await axios.get(`${getApiBaseUrl()}/api/admin/stats/user-growth?period=${userChartPeriod.value}`)
         
-        await initCharts()
+        // 确保图表实例存在
+        if (!userChart) {
+          await initCharts()
+        }
         
         if (userChart && response.data.dates && response.data.counts) {
           const option = {
@@ -441,17 +466,20 @@ export default {
           }
           
           userChart.setOption(option)
-        }      } catch (error) {
+        }
+      } catch (error) {
         ElMessage.error('加载用户增长数据失败')
+        console.error('加载用户增长数据失败:', error)
       }
-    }
-
-    // 加载审核状态数据
+    }    // 加载审核状态数据
     const loadReviewStatusData = async () => {
       try {
         const response = await axios.get(`${getApiBaseUrl()}/api/admin/stats/review-status?period=${reviewChartPeriod.value}`)
         
-        await initCharts()
+        // 确保图表实例存在
+        if (!reviewChart) {
+          await initCharts()
+        }
         
         if (reviewChart && response.data.data) {
           const option = {
@@ -488,8 +516,10 @@ export default {
           }
           
           reviewChart.setOption(option)
-        }      } catch (error) {
+        }
+      } catch (error) {
         ElMessage.error('加载审核状态数据失败')
+        console.error('加载审核状态数据失败:', error)
       }
     }
 
@@ -575,9 +605,7 @@ export default {
       if (usage < 70) return '#67c23a'
       if (usage < 85) return '#e6a23c'
       return '#f56c6c'
-    }
-
-    // 格式化日期
+    }    // 格式化日期
     const formatDate = (dateString) => {
       if (!dateString) return '-'
       const date = new Date(dateString)
@@ -594,20 +622,32 @@ export default {
       // 等待DOM渲染完成
       await nextTick()
       
-      // 初始化数据
-      await Promise.all([
-        loadOverviewData(),
-        loadCategoryStats(),
-        loadActiveUsers(),
-        loadPerformanceData()
-      ])
-      
-      // 初始化图表
-      await initCharts()
-      await loadUserGrowthData()
-      await loadReviewStatusData()
-      
-      window.addEventListener('resize', handleResize)
+      try {
+        // 初始化数据
+        await Promise.all([
+          loadOverviewData(),
+          loadCategoryStats(),
+          loadActiveUsers(),
+          loadPerformanceData()
+        ])
+        
+        // 等待一段时间确保页面布局完成
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+        // 先初始化图表，再加载图表数据
+        await initCharts()
+        
+        // 加载图表数据
+        await Promise.all([
+          loadUserGrowthData(),
+          loadReviewStatusData()
+        ])
+        
+        window.addEventListener('resize', handleResize)
+      } catch (error) {
+        console.error('组件初始化失败:', error)
+        ElMessage.error('页面初始化失败，请刷新重试')
+      }
     })
 
     onUnmounted(() => {
