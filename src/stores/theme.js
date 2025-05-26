@@ -67,8 +67,6 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.style.setProperty('--accent-color', color.accent);
   };  // 初始化主题 - 简化逻辑，确保可靠性
   const initTheme = () => {
-    console.log('Theme Store: 开始初始化主题...');
-    
     try {
       // 1. 立即设置深色模式类
       if (isDarkMode.value) {
@@ -83,12 +81,6 @@ export const useThemeStore = defineStore('theme', () => {
       // 3. 设置主题色
       applyThemeColor(currentThemeColor.value);
       
-      // 4. 验证结果
-      setTimeout(() => {
-        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
-        console.log('Theme Store: 初始化完成，文字颜色:', textColor);
-      }, 50);
-      
     } catch (error) {
       console.error('Theme Store: 初始化失败:', error);
     }
@@ -96,9 +88,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   // 修改切换函数，确保状态切换正确
   const toggleDarkMode = () => {
-    console.log('切换前的深色模式状态:', isDarkMode.value);
     isDarkMode.value = !isDarkMode.value;
-    console.log('切换后的深色模式状态:', isDarkMode.value);
     
     // 确保DOM也被更新
     document.documentElement.classList.toggle('dark-mode', isDarkMode.value);

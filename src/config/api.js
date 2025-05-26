@@ -4,9 +4,9 @@
 
 // 环境配置
 const config = {  development: {
-    // 临时修改：开发环境也使用生产API进行测试
-    apiBaseUrl: 'https://apii.wenturc.com',
-    wsUrl: 'wss://apii.wenturc.com',
+    // 修复：使用localhost替代0.0.0.0解决CORS问题
+    apiBaseUrl: 'http://localhost:5000',
+    wsUrl: 'wss://localhost:5000',
     // 外部API配置 - 开发环境使用代理路径
     externalApiBaseUrl: '/api/external',
     // vmoranv API配置 - 开发环境使用代理路径
@@ -63,10 +63,4 @@ export const getWsUrl = () => API_CONFIG.wsUrl
 export const getExternalApiBaseUrl = () => API_CONFIG.externalApiBaseUrl
 export const getVmoranvApiBaseUrl = () => API_CONFIG.vmoranvApiBaseUrl
 
-// 日志输出当前配置
-console.log(`[API Config] 当前环境: ${getEnvironment()}`)
-console.log(`[API Config] API地址: ${API_CONFIG.apiBaseUrl}`)
-console.log(`[API Config] 外部API地址: ${API_CONFIG.externalApiBaseUrl}`)
-console.log(`[API Config] Vmoranv API地址: ${API_CONFIG.vmoranvApiBaseUrl}`)
-
-export default API_CONFIG 
+export default API_CONFIG

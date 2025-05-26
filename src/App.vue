@@ -94,7 +94,6 @@ const isIframeModalVisible = ref(false); // 新增：iframe模态框显示状态
 // 监听主题变化的简化方法
 const refreshTheme = () => {
   // 不再设置themeConfig，因为它导致了警告
-  console.log("Theme refreshed");
 };
 
 // 监听主题变化

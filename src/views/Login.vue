@@ -51,7 +51,6 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
-import { getApiBaseUrl } from '../config/api'
 import { User, Lock, View, Hide } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -94,18 +93,17 @@ const submitForm = async () => {
       try {
         ElMessage.info('正在发送登录请求...')
         
-        const response = await axios.post(`${getApiBaseUrl()}/api/login`, {
+        const response = await axios.post('http://localhost:5000/api/login', {
           username: loginForm.username,
           password: loginForm.password
         })
-        
-        console.log('登录响应:', response.data)
         
         // 保存用户数据到状态管理
         userStore.login({
           username: response.data.username,
           access_token: response.data.access_token,
-          user_id: response.data.user_id
+          user_id: response.data.user_id,
+          role: response.data.role  // 添加角色信息
         })
         
         ElMessage.success('登录成功')

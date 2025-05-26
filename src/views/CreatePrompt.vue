@@ -60,13 +60,11 @@ const handleResize = () => {
 const isDevelopment = ref(false) // 关闭本地存储模式
 
 // 在组件挂载时验证用户是否已登录
-onMounted(async () => {
-  if (!userStore.isLoggedIn) {
+onMounted(async () => {  if (!userStore.isLoggedIn) {
     ElMessage.warning('请先登录后再创建Prompt')
     router.push('/login')
     return
   }
-  console.log('用户已登录，继续操作');
   
   // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize)
@@ -139,31 +137,21 @@ const submitForm = async () => {
             'Authorization': `Bearer ${userStore.token}`,
             'Content-Type': 'application/json'
           },
-          data: payload,
-          // 添加调试信息和更长的超时
+          data: payload,          // 添加调试信息和更长的超时
           timeout: 10000,
           validateStatus: status => {
-            console.log('响应状态码:', status)
             return status >= 200 && status < 300
-          }
-        })
-        
-        console.log('服务器响应:', response.status, response.data)
+          }        })
         
         // 清空表单
         resetForm()
-        
-        ElMessage.success('Prompt创建成功')
+          ElMessage.success('Prompt创建成功')
         router.push('/prompts')
       } catch (error) {
-        console.error('创建Prompt失败:', error)
         
         if (error.response) {
-          console.log('错误状态码:', error.response.status)
-          console.log('错误数据:', error.response.data)
           
           if (error.response.status === 401) {
-            console.log('令牌验证失败:', error.response.data)
             
             // 尝试重新获取令牌并重试，而不是直接登出
             try {
@@ -171,9 +159,7 @@ const submitForm = async () => {
               if (refreshSuccess) {
                 ElMessage.info('会话已更新，请重试')
                 return
-              }
-            } catch (refreshError) {
-              console.error('刷新令牌失败:', refreshError)
+              }            } catch (refreshError) {
             }
             
             ElMessage.error('登录状态已过期，请重新登录')
@@ -181,10 +167,8 @@ const submitForm = async () => {
             router.push('/login')
             return
           }
-          
-          ElMessage.error(`创建失败: ${error.response.data.msg || '服务器错误'}`)
+            ElMessage.error(`创建失败: ${error.response.data.msg || '服务器错误'}`)
         } else if (error.request) {
-          console.error('未收到响应:', error.request)
           ElMessage.error('服务器未响应，请检查网络连接或后端服务状态')
         } else {
           ElMessage.error(`请求出错: ${error.message}`)
@@ -202,13 +186,7 @@ const resetForm = () => {
   }
 }
 
-// 添加测试认证的状态
-const authStatus = ref('')
 
-// 测试认证方法 - 改为无内容
-const testAuth = async () => {
-  authStatus.value = '认证成功';
-};
 </script>
 
 <style scoped>

@@ -4,11 +4,14 @@
       <router-link to="/" class="logo-link">
         <h1 class="logo"><img src="/img/logo.png" alt="WentUrc" class="logo-icon" draggable="false" /> WentUrc Prompt</h1>
       </router-link>
-      
-      <div class="nav-links">
+        <div class="nav-links">
         <router-link to="/">首 页</router-link>
         <router-link to="/prompts">浏 览</router-link>
         <router-link v-if="isLoggedIn" to="/create">创 建</router-link>
+        <router-link v-if="isLoggedIn && userStore.isAdmin" to="/admin" class="admin-link">
+          <el-icon><Setting /></el-icon>
+          <span>管理</span>
+        </router-link>
         <router-link v-if="!isLoggedIn" to="/login">登录</router-link>
         <router-link v-if="!isLoggedIn" to="/register" class="register-link">注册</router-link>
         <a v-if="isLoggedIn" href="#" @click.prevent="onLogout" class="logout-link">
@@ -93,13 +96,16 @@
         </span>
       </el-button>
     </div>
-    
-    <!-- 移动端下拉菜单 -->
+      <!-- 移动端下拉菜单 -->
     <transition name="slide-fade">
       <div class="mobile-menu" v-if="showMobileMenu" @click.stop>
         <router-link to="/" @click="closeMobileMenu">首页</router-link>
         <router-link to="/prompts" @click="closeMobileMenu">浏览</router-link>
         <router-link v-if="isLoggedIn" to="/create" @click="closeMobileMenu">创建</router-link>
+        <router-link v-if="isLoggedIn && userStore.isAdmin" to="/admin" @click="closeMobileMenu" class="admin-mobile-link">
+          <el-icon><Setting /></el-icon>
+          <span>管理员面板</span>
+        </router-link>
         <router-link v-if="!isLoggedIn" to="/login" @click="closeMobileMenu">登录</router-link>
         <router-link v-if="!isLoggedIn" to="/register" @click="closeMobileMenu">注册</router-link>
         <a v-if="isLoggedIn" href="#" @click.prevent="handleMobileLogout">退出登录</a>
@@ -160,7 +166,7 @@ import { ref, computed, onMounted, onUnmounted, watch, readonly } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../stores/user';
 import { useThemeStore } from '../stores/theme';
-import { Menu, Close, Moon, Sunny, ArrowDown, Check, SwitchButton } from '@element-plus/icons-vue';
+import { Menu, Close, Moon, Sunny, ArrowDown, Check, SwitchButton, Setting } from '@element-plus/icons-vue';
 
 const emit = defineEmits(['logout', 'update:darkMode', 'update:themeColor', 'mobile-menu-toggle']);
 
@@ -696,7 +702,7 @@ defineExpose({
   width: 100%;
 }
 
-.register-link, .logout-link {
+.register-link, .logout-link, .admin-link {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 6px 14px !important;
@@ -708,7 +714,7 @@ defineExpose({
   position: relative;
 }
 
-.register-link:hover, .logout-link:hover {
+.register-link:hover, .logout-link:hover, .admin-link:hover {
   background-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -716,17 +722,19 @@ defineExpose({
 
 /* 加强特异性，彻底禁用这些按钮的下划线效果 */
 .nav-links .register-link::after, 
-.nav-links .logout-link::after {
+.nav-links .logout-link::after,
+.nav-links .admin-link::after {
   display: none !important; /* 完全不显示伪元素 */
 }
 
 /* 保留原来的规则，双重保证 */
 .register-link:hover:after, .register-link.router-link-active:after,
-.logout-link:hover:after, .logout-link.router-link-active:after {
+.logout-link:hover:after, .logout-link.router-link-active:after,
+.admin-link:hover:after, .admin-link.router-link-active:after {
   width: 0 !important; /* 强制覆盖普通链接hover时的下划线宽度 */
 }
 
-.logout-link {
+.logout-link, .admin-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -880,6 +888,18 @@ defineExpose({
   text-shadow: none;
 }
 
+/* 管理员移动端链接特殊样式 */
+.mobile-menu .admin-mobile-link {
+  gap: 8px;
+  color: #f56c6c;
+  font-weight: 600;
+}
+
+.mobile-menu .admin-mobile-link .el-icon {
+  font-size: 16px;
+  color: #f56c6c;
+}
+
 .mobile-menu a:hover, .mobile-menu a.router-link-active {
   background-color: rgba(0, 0, 0, 0.08);
   border-left-color: var(--primary-color);
@@ -891,6 +911,17 @@ defineExpose({
   background-color: var(--primary-color);
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 管理员移动端链接hover效果 */
+.mobile-menu .admin-mobile-link:hover {
+  background-color: #f56c6c;
+  border-left-color: #f56c6c;
+  color: white;
+}
+
+.mobile-menu .admin-mobile-link:hover .el-icon {
+  color: white;
 }
 
 /* 移动端主题设置 */
@@ -1023,6 +1054,25 @@ defineExpose({
   color: white;
   border-left-color: var(--primary-color);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* 深色模式下的管理员移动端链接 */
+.dark-mode .mobile-menu .admin-mobile-link {
+  color: #fca5a5;
+}
+
+.dark-mode .mobile-menu .admin-mobile-link .el-icon {
+  color: #fca5a5;
+}
+
+.dark-mode .mobile-menu .admin-mobile-link:hover {
+  background-color: #f56c6c;
+  border-left-color: #f56c6c;
+  color: white;
+}
+
+.dark-mode .mobile-menu .admin-mobile-link:hover .el-icon {
+  color: white;
 }
 
 .dark-mode .mobile-theme-settings {

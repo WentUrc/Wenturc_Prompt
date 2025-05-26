@@ -163,12 +163,10 @@ const likedPrompts = ref([])
 
 // 初始化用户点赞记录
 const initLikedPrompts = () => {
-  if (userStore.isLoggedIn) {
-    // 每个用户有独立的点赞记录，格式为 user_{userId}_liked_prompts
+  if (userStore.isLoggedIn) {    // 每个用户有独立的点赞记录，格式为 user_{userId}_liked_prompts
     const userLikedPromptsKey = `user_${userStore.userId}_${likedPromptsKey}`
     const savedLikedPrompts = JSON.parse(localStorage.getItem(userLikedPromptsKey) || '[]')
     likedPrompts.value = savedLikedPrompts
-    console.log('加载用户点赞记录:', likedPrompts.value)
   }
 }
 
@@ -176,13 +174,10 @@ const initLikedPrompts = () => {
 const fetchVmoranvPrompts = async () => {
   vmoranvLoading.value = true;
   try {
-    console.log('从vmoranv市场API获取prompts数据');
     
     // 使用我们自己的后端代理来请求数据
     const apiBaseUrl = getApiBaseUrl();
     const response = await axios.get(`${apiBaseUrl}/api/vmoranv/prompts`);
-    
-    console.log('vmoranv API响应:', response.data);  // 添加日志
     
     // 检查响应格式并适配数据
     const prompts = Array.isArray(response.data) ? response.data : 
@@ -199,14 +194,11 @@ const fetchVmoranvPrompts = async () => {
       created_at: prompt.createdAt || prompt.created_at,
       author: prompt.author?.name || prompt.author || '未知作者',
       isExternal: true,
-      source: 'vmoranv市场',
-      hasLiked: false,
+      source: 'vmoranv市场',      hasLiked: false,
       originalData: prompt
     }));
     
-    console.log('处理后的prompts数据:', vmoranvPrompts.value);  // 添加日志
   } catch (error) {
-    console.error('获取vmoranv市场API数据失败:', error.response?.data || error);
     vmoranvPrompts.value = [];
   } finally {
     vmoranvLoading.value = false;
@@ -217,13 +209,10 @@ const fetchVmoranvPrompts = async () => {
 const fetchExternalPrompts = async () => {
   externalLoading.value = true
   try {
-    console.log('从外部API获取prompts数据');
     
     // 使用我们自己的后端代理来请求数据
     const apiBaseUrl = getApiBaseUrl();
     const response = await axios.get(`${apiBaseUrl}/api/external/prompts`);
-    
-    console.log('外部API响应:', response.data);
     
     if (response.data) {
       // 转换外部数据格式以匹配本地格式
@@ -248,9 +237,7 @@ const fetchExternalPrompts = async () => {
       console.log('成功获取外部API数据，数量:', externalPrompts.value.length);
     } else {
       throw new Error('外部API返回的数据格式不正确');
-    }
-  } catch (error) {
-    console.warn('获取外部API数据失败:', error);
+    }  } catch (error) {
     // 失败时不显示错误消息，只在控制台记录
     externalPrompts.value = [];
   } finally {
@@ -261,7 +248,6 @@ const fetchExternalPrompts = async () => {
 const fetchPrompts = async () => {
   loading.value = true
   try {
-    console.log('从本地存储获取prompts数据');
     
     // 从本地存储获取开发模式下保存的prompts
     const devPrompts = JSON.parse(localStorage.getItem('dev-prompts') || '[]');
@@ -281,17 +267,13 @@ const fetchPrompts = async () => {
         
         // 根据分类过滤
         if (selectedCategory.value) {
-          prompts.value = allPrompts.filter(p => p.category === selectedCategory.value);
-        } else {
+          prompts.value = allPrompts.filter(p => p.category === selectedCategory.value);        } else {
           prompts.value = allPrompts;
         }
         
-        console.log('获取到API和本地数据');
       } else {
         throw new Error('API返回的数据格式不正确');
-      }
-    } catch (error) {
-      console.warn('获取API数据失败，仅使用本地数据:', error);
+      }      } catch (error) {
       
       // 仅使用本地数据
       if (selectedCategory.value) {
@@ -300,11 +282,9 @@ const fetchPrompts = async () => {
         prompts.value = devPrompts;
       }
     }
-    
-    // 标记用户已点赞的Prompt
+      // 标记用户已点赞的Prompt
     markLikedPrompts();
   } catch (error) {
-    console.error('获取Prompts失败:', error);
     ElMessage.error('获取数据失败，请稍后重试');
     prompts.value = [];
   } finally {
@@ -332,11 +312,9 @@ const formatDate = (dateString) => {
 }
 
 // 更新用户点赞状态记录
-const saveUserLikedPrompts = () => {
-  if (userStore.isLoggedIn) {
+const saveUserLikedPrompts = () => {  if (userStore.isLoggedIn) {
     const userLikedPromptsKey = `user_${userStore.userId}_${likedPromptsKey}`
     localStorage.setItem(userLikedPromptsKey, JSON.stringify(likedPrompts.value))
-    console.log('保存用户点赞记录:', likedPrompts.value)
   }
 }
 
@@ -375,10 +353,8 @@ const toggleLike = async (prompt) => {
   
   const promptId = prompt.id
   const isAlreadyLiked = prompt.hasLiked
-  
-  // 检查是否为本地存储的Prompt（ID以dev-开头）
+    // 检查是否为本地存储的Prompt（ID以dev-开头）
   if (promptId.toString().startsWith('dev-')) {
-    console.log(`处理本地存储Prompt的${isAlreadyLiked ? '取消点赞' : '点赞'}操作:`, promptId)
     
     // 从本地存储获取所有prompts
     const devPrompts = JSON.parse(localStorage.getItem('dev-prompts') || '[]')
@@ -460,10 +436,8 @@ const toggleLike = async (prompt) => {
     
     // 保存用户点赞记录
     saveUserLikedPrompts()
-    
-    ElMessage.success(isAlreadyLiked ? '已取消点赞' : '点赞成功')
+      ElMessage.success(isAlreadyLiked ? '已取消点赞' : '点赞成功')
   } catch (error) {
-    console.error(isAlreadyLiked ? '取消点赞失败:' : '点赞失败:', error)
     ElMessage.error(isAlreadyLiked ? '取消点赞失败，请稍后重试' : '点赞失败，请稍后重试')
   }
 }
