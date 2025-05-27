@@ -52,6 +52,7 @@ import { useUserStore } from '../stores/user'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
 import { User, Lock, View, Hide } from '@element-plus/icons-vue'
+import { getApiBaseUrl } from '../config/api'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -93,7 +94,7 @@ const submitForm = async () => {
       try {
         ElMessage.info('正在发送登录请求...')
         
-        const response = await axios.post('http://localhost:5000/api/login', {
+        const response = await axios.post(`${getApiBaseUrl()}/api/login`, {
           username: loginForm.username,
           password: loginForm.password
         })
