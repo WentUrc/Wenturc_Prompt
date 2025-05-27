@@ -1,4 +1,6 @@
 {
+  "buildCommand": "VITE_APP_ENV=production npm run build",
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
@@ -25,4 +27,4 @@
       ]
     }
   ]
-} 
+}

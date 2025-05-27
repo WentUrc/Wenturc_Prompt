@@ -15,6 +15,12 @@
   --background-color-light: #f5f7fa;
   --box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
   
+  /* 外部网格相关样式变量 */
+  --external-bg: rgba(249, 250, 251, 0.5);
+  --warning-color: #e6a23c;
+  --warning-color-light: #f9c23c;
+  --hero-background: #f0f9ff;
+  
   /* 过渡动画 */
   --transition-duration: 0.3s;
   
@@ -48,11 +54,15 @@
   --hero-title-color: rgba(255, 255, 255, 0.95) !important;
   --hero-text-color: rgba(255, 255, 255, 0.8) !important;
   --accent-color: #95d475 !important;
+  /* 外部网格深色模式变量 */
+  --external-bg: rgba(15, 23, 42, 0.8) !important;
+  --external-bg-dark: rgba(15, 23, 42, 0.8) !important;
+  --card-bg-dark: rgba(15, 23, 42, 0.9) !important;
+  --warning-color-dark: #f9c23c !important;
   
   /* 阴影 */
   --box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.5) !important;
-  
-  /* ElementPlus 重要变量覆盖 */
+    /* ElementPlus 重要变量覆盖 */
   --el-bg-color: #1f2937;
   --el-bg-color-overlay: #1f2937;
   --el-fill-color-blank: #1f2937;
@@ -61,6 +71,8 @@
   --el-text-color-regular: #d1d5db;
   --el-dropdown-menuItem-hover-fill: #374151;
   --el-dropdown-menuItem-hover-color: #ffffff;
+    /* ElementPlus 标签页深色模式 */
+  --el-tabs-header-background: rgba(30, 41, 59, 0.5);
 }
 
 /* 全局样式 */
@@ -106,6 +118,121 @@ a:hover {
   border-color: var(--secondary-color);
 }
 
+/* 修复 link 按钮悬停时透明度问题 */
+.el-button.is-link {
+  color: var(--primary-color) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 8px 15px !important;
+  text-decoration: none !important;
+  opacity: 1 !important;
+}
+
+.el-button.is-link:hover,
+.el-button.is-link:focus {
+  color: var(--secondary-color) !important;
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+  text-decoration: none !important;
+  opacity: 1 !important;
+  border-radius: 6px !important;
+}
+
+.el-button.is-link:active {
+  color: var(--secondary-color) !important;
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
+/* 深色模式下的 link 按钮 */
+.dark-mode .el-button.is-link {
+  color: var(--primary-color) !important;
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
+.dark-mode .el-button.is-link:hover,
+.dark-mode .el-button.is-link:focus {
+  color: var(--secondary-color) !important;
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 40%, transparent) !important;
+  opacity: 1 !important;
+  border-radius: 6px !important;
+}
+
+.dark-mode .el-button.is-link:active {
+  color: var(--secondary-color) !important;
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
+/* 使用更高特异性确保样式生效 */
+:deep(.el-button.is-link),
+.el-button--text.is-link {
+  color: var(--primary-color) !important;
+  background: transparent !important;
+  border: none !important;
+  opacity: 1 !important;
+}
+
+:deep(.el-button.is-link:hover),
+:deep(.el-button.is-link:focus),
+.el-button--text.is-link:hover,
+.el-button--text.is-link:focus {
+  color: var(--secondary-color) !important;
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+  opacity: 1 !important;
+  border-radius: 6px !important;
+}
+
+/* 确保所有可能的链接按钮类型都被覆盖 */
+.el-button.el-button--text,
+.el-button[type="button"].is-link,
+button.el-button.is-link {
+  color: var(--primary-color) !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.el-button.el-button--text:hover,
+.el-button.el-button--text:focus,
+.el-button[type="button"].is-link:hover,
+.el-button[type="button"].is-link:focus,
+button.el-button.is-link:hover,
+button.el-button.is-link:focus {
+  color: var(--secondary-color) !important;
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+  opacity: 1 !important;
+  border-radius: 6px !important;
+}
+
+/* 深色模式下的额外确保 */
+.dark-mode .el-button.el-button--text,
+.dark-mode .el-button[type="button"].is-link,
+.dark-mode button.el-button.is-link {
+  color: var(--primary-color) !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.dark-mode .el-button.el-button--text:hover,
+.dark-mode .el-button.el-button--text:focus,
+.dark-mode .el-button[type="button"].is-link:hover,
+.dark-mode .el-button[type="button"].is-link:focus,
+.dark-mode button.el-button.is-link:hover,
+.dark-mode button.el-button.is-link:focus {
+  color: var(--secondary-color) !important;
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 40%, transparent) !important;
+  opacity: 1 !important;
+  border-radius: 6px !important;
+}
 /* 输入框主题样式 */
 .el-input__inner:focus {
   border-color: var(--primary-color);
@@ -127,9 +254,9 @@ a:hover {
 
 /* 修复深色模式下各种类型标签的颜色 */
 .dark-mode .el-tag--primary {
-  background-color: rgba(64, 158, 255, 0.2);
+  background-color: rgba(var(--primary-color-rgb), 0.2);
   color: #79bbff;
-  border-color: rgba(64, 158, 255, 0.4);
+  border-color: rgba(var(--primary-color-rgb), 0.4);
 }
 
 .dark-mode .el-tag--success {

@@ -67,10 +67,8 @@ const checkIfUserLiked = () => {
   const userId = userStore.userId;
   const likedPromptsKey = `user_${userId}_user-liked-prompts`;
   const likedPrompts = JSON.parse(localStorage.getItem(likedPromptsKey) || '[]');
-  
-  // 检查当前prompt是否在点赞列表中
+    // 检查当前prompt是否在点赞列表中
   hasLiked.value = likedPrompts.includes(prompt.value.id);
-  console.log(`检查用户 ${userId} 是否点赞 Prompt ${prompt.value.id}: ${hasLiked.value}`);
 };
 
 const fetchPrompt = async () => {
@@ -80,19 +78,14 @@ const fetchPrompt = async () => {
     
     // 首先尝试从本地存储获取（处理以dev-开头的ID）
     const devPrompts = JSON.parse(localStorage.getItem('dev-prompts') || '[]');
-    const localPrompt = devPrompts.find(p => p.id == promptId);
-    
-    if (localPrompt) {
+    const localPrompt = devPrompts.find(p => p.id == promptId);    if (localPrompt) {
       prompt.value = localPrompt;
-      console.log('从本地存储获取到prompt数据:', promptId);
     } else {
       // 如果本地没有，尝试从API获取
       try {
         const response = await axios.get(`${getApiBaseUrl()}/api/prompts/${promptId}`);
         prompt.value = response.data;
-        console.log('从API获取到prompt数据:', promptId);
       } catch (error) {
-        console.error('API获取prompt失败:', error);
         prompt.value = null;
         ElMessage.error('未找到该Prompt');
       }
@@ -101,9 +94,7 @@ const fetchPrompt = async () => {
     // 如果成功获取到prompt且用户已登录，检查点赞状态
     if (prompt.value && userStore.isLoggedIn) {
       checkIfUserLiked();
-    }
-  } catch (error) {
-    console.error('获取Prompt详情失败:', error);
+    }  } catch (error) {
     ElMessage.error('获取Prompt详情失败，请稍后重试');
     prompt.value = null;
   } finally {
@@ -120,9 +111,7 @@ const copyContent = () => {
   navigator.clipboard.writeText(prompt.value.content)
     .then(() => {
       ElMessage.success('已复制到剪贴板')
-    })
-    .catch(err => {
-      console.error('复制失败:', err)
+    })    .catch(err => {
       ElMessage.error('复制失败，请手动复制')
     })
 }
@@ -154,7 +143,6 @@ const likePrompt = async (likedPrompts, likedPromptsKey) => {
   // 检查是否为本地存储的Prompt（ID以dev-开头）
   if (prompt.value.id.toString().startsWith('dev-')) {
     // 本地存储模式 - 不会上传到服务器
-    console.log('处理本地存储Prompt的点赞操作:', prompt.value.id);
     
     // 从本地存储获取所有prompts
     const devPrompts = JSON.parse(localStorage.getItem('dev-prompts') || '[]');
@@ -168,14 +156,12 @@ const likePrompt = async (likedPrompts, likedPromptsKey) => {
     
     // 更新本地存储中的点赞数
     devPrompts[promptIndex].likes += 1;
-    prompt.value.likes += 1;
-    localStorage.setItem('dev-prompts', JSON.stringify(devPrompts));
+    prompt.value.likes += 1;    localStorage.setItem('dev-prompts', JSON.stringify(devPrompts));
     
     // 保存用户点赞记录 - 确保不重复添加
     if (!likedPrompts.includes(prompt.value.id)) {
       likedPrompts.push(prompt.value.id);
       localStorage.setItem(likedPromptsKey, JSON.stringify(likedPrompts));
-      console.log(`用户 ${userStore.userId} 点赞了 Prompt ${prompt.value.id}, 已保存记录`);
     }
     
     // 更新点赞状态
@@ -194,20 +180,16 @@ const likePrompt = async (likedPrompts, likedPromptsKey) => {
     });
     
     prompt.value.likes = response.data.likes;
-    
-    // 保存用户点赞记录 - 确保不重复添加
+      // 保存用户点赞记录 - 确保不重复添加
     if (!likedPrompts.includes(prompt.value.id)) {
       likedPrompts.push(prompt.value.id);
       localStorage.setItem(likedPromptsKey, JSON.stringify(likedPrompts));
-      console.log(`用户 ${userStore.userId} 点赞了 Prompt ${prompt.value.id}, 已保存记录`);
     }
     
     // 更新点赞状态
     hasLiked.value = true;
     
-    ElMessage.success('点赞成功');
-  } catch (error) {
-    console.error('点赞失败:', error);
+    ElMessage.success('点赞成功');  } catch (error) {
     ElMessage.error('点赞失败，请稍后重试');
   }
 };
@@ -216,7 +198,6 @@ const likePrompt = async (likedPrompts, likedPromptsKey) => {
 const unlikePrompt = async (likedPrompts, likedPromptsKey) => {
   // 检查是否为本地存储的Prompt
   if (prompt.value.id.toString().startsWith('dev-')) {
-    console.log('处理本地存储Prompt的取消点赞操作:', prompt.value.id);
     
     // 从本地存储获取所有prompts
     const devPrompts = JSON.parse(localStorage.getItem('dev-prompts') || '[]');

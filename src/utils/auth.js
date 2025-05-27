@@ -28,25 +28,16 @@ export function formatAuthHeader(token) {
 export function setupAuthInterceptor() {
   axios.interceptors.request.use(
     config => {
-      // 打印详细的请求配置以便调试
-      console.log('请求配置:', {
-        url: config.url,
-        method: config.method,
-        hasAuth: Boolean(config.headers.Authorization)
-      });
-      
       const authHeader = config.headers.Authorization;
       
       if (authHeader) {
         // 确保Authorization头格式正确
         config.headers.Authorization = formatAuthHeader(authHeader);
-        console.log('格式化后的令牌:', config.headers.Authorization.substring(0, 20) + '...');
       }
       
       return config;
     },
     error => {
-      console.error('请求拦截器错误:', error);
       return Promise.reject(error);
     }
   );

@@ -1,72 +1,45 @@
 /**
- * API配置管理
+ * API配置管理 - 构建时确定环境
  */
 
-// 环境配置
-const config = {  development: {
-    // 临时修改：开发环境也使用生产API进行测试
-    apiBaseUrl: 'https://apii.wenturc.com',
-    wsUrl: 'wss://apii.wenturc.com',
-    // 外部API配置 - 开发环境使用代理路径
-    externalApiBaseUrl: '/api/external',
-    // vmoranv API配置 - 开发环境使用代理路径
-    vmoranvApiBaseUrl: '/api/vmoranv'
-  },
-  production: {
-    // 生产环境API地址 - 使用实际的API域名
-    apiBaseUrl: 'https://apii.wenturc.com',
-    wsUrl: 'wss://apii.wenturc.com',
-    // 外部API配置 - 生产环境也使用代理
-    externalApiBaseUrl: 'https://apii.wenturc.com/api/external',
-    // vmoranv API配置 - 生产环境也使用代理
-    vmoranvApiBaseUrl: 'https://apii.wenturc.com/api/vmoranv'
-  },
-  test: {
-    // 测试环境API地址
-    apiBaseUrl: 'https://apii.wenturc.com',
-    wsUrl: 'wss://apii.wenturc.com',
-    // 外部API配置
-    externalApiBaseUrl: 'https://apii.wenturc.com/api/external',
-    // vmoranv API配置
-    vmoranvApiBaseUrl: 'https://apii.wenturc.com/api/vmoranv'
-  }
-}
+// 在构建时就确定 API 配置
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://apii.wenturc.com'  // 生产环境
+  : 'http://localhost:5000'     // 开发环境
 
-// 获取当前环境
-const getEnvironment = () => {
-  // 支持Vite环境变量
-  if (import.meta.env.VITE_APP_ENV) {
-    return import.meta.env.VITE_APP_ENV
-  }
-  
-  // 支持NODE_ENV
-  if (import.meta.env.NODE_ENV) {
-    return import.meta.env.NODE_ENV
-  }
-  
-  // 默认开发环境
-  return 'development'
-}
+const EXTERNAL_API_BASE_URL = import.meta.env.PROD
+  ? 'https://apii.wenturc.com/api/external'
+  : '/api/external'
 
-// 获取当前环境配置
-const getCurrentConfig = () => {
-  const env = getEnvironment()
-  return config[env] || config.development
-}
+const VMORANV_API_BASE_URL = import.meta.env.PROD
+  ? 'https://apii.wenturc.com/api/vmoranv'
+  : '/api/vmoranv'
 
-// 导出API配置
-export const API_CONFIG = getCurrentConfig()
+const WS_URL = import.meta.env.PROD
+  ? 'wss://apii.wenturc.com'
+  : 'wss://localhost:5000'
+
+// 导出 API 配置
+export const API_CONFIG = {
+  apiBaseUrl: API_BASE_URL,
+  wsUrl: WS_URL,
+  externalApiBaseUrl: EXTERNAL_API_BASE_URL,
+  vmoranvApiBaseUrl: VMORANV_API_BASE_URL
+}
 
 // 导出便捷方法
-export const getApiBaseUrl = () => API_CONFIG.apiBaseUrl
-export const getWsUrl = () => API_CONFIG.wsUrl
-export const getExternalApiBaseUrl = () => API_CONFIG.externalApiBaseUrl
-export const getVmoranvApiBaseUrl = () => API_CONFIG.vmoranvApiBaseUrl
+export const getApiBaseUrl = () => API_BASE_URL
+export const getWsUrl = () => WS_URL
+export const getExternalApiBaseUrl = () => EXTERNAL_API_BASE_URL
+export const getVmoranvApiBaseUrl = () => VMORANV_API_BASE_URL
 
-// 日志输出当前配置
-console.log(`[API Config] 当前环境: ${getEnvironment()}`)
-console.log(`[API Config] API地址: ${API_CONFIG.apiBaseUrl}`)
-console.log(`[API Config] 外部API地址: ${API_CONFIG.externalApiBaseUrl}`)
-console.log(`[API Config] Vmoranv API地址: ${API_CONFIG.vmoranvApiBaseUrl}`)
+// 调试信息
+console.log('🔧 API配置 (构建时确定):', {
+  '构建环境': import.meta.env.PROD ? 'production' : 'development',
+  'API地址': API_BASE_URL,
+  'WebSocket地址': WS_URL,
+  '外部API地址': EXTERNAL_API_BASE_URL,
+  'Vmoranv API地址': VMORANV_API_BASE_URL
+})
 
-export default API_CONFIG 
+export default API_CONFIG

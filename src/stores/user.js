@@ -7,88 +7,87 @@ export const useUserStore = defineStore('user', () => {
   const username = ref('')
   const token = ref('')
   const userId = ref(null)
+  const role = ref('user') // 添加角色状态
+  const isServerConnected = ref(true) // 添加服务器连接状态
   
   // 计算属性：是否登录
   const isLoggedIn = computed(() => Boolean(token.value))
   
-  // 初始化用户状态
+  // 计算属性：是否为管理员
+  const isAdmin = computed(() => role.value === 'admin')
+    // 初始化用户状态
   async function init() {
-    console.log('初始化用户状态...')
-    
     // 从本地存储获取用户信息
     const storedToken = localStorage.getItem('user_token')
     const storedUsername = localStorage.getItem('user_name')
+    const storedRole = localStorage.getItem('user_role')
     
     if (storedToken && storedUsername) {
-      console.log('发现存储的用户凭据')
       token.value = storedToken
       username.value = storedUsername
+      role.value = storedRole || 'user' // 从本地存储恢复角色
       
       // 重要：为所有后续请求设置默认Authorization头
       axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
-      console.log('已设置全局认证头:', `Bearer ${storedToken.substring(0, 10)}...`)
-      
-      try {
-        // 验证令牌有效性
+        try {
+        // 验证令牌有效性并获取用户信息
         const response = await axios.get(`${getApiBaseUrl()}/api/token-info`)
-        console.log('令牌验证成功:', response.data)
         userId.value = response.data.user_id
+        console.log('Token验证成功，用户ID:', userId.value)
         return true
       } catch (error) {
-        console.error('令牌验证失败:', error.response?.data || error.message)
-        // 令牌无效，不要自动登出，允许用户继续使用
-        // 因为可能只是token-info端点不存在
-        return true // 仍然返回true允许用户继续使用应用
+        console.warn('Token验证失败，可能是服务器连接问题:', error.message)
+        // 如果是连接错误，保持登录状态但显示警告
+        if (error.code === 'ERR_CONNECTION_REFUSED' || error.code === 'ERR_NETWORK') {
+          console.warn('无法连接到服务器，将在离线模式下继续')
+          return true
+        }
+        // 如果是token无效，清除登录状态
+        if (error.response && error.response.status === 401) {
+          console.log('Token已过期，清除登录状态')
+          logout()
+          return false
+        }
+        return true // 其他错误情况下仍然保持登录状态
       }
     } else {
-      console.log('未找到存储的用户凭据')
       return false
     }
   }
-  
   // 登录
   function login(userData) {
-    console.log('登录中...')
     username.value = userData.username
     token.value = userData.access_token
     userId.value = userData.user_id || null
+    role.value = userData.role || 'user' // 设置用户角色
     
     // 保存到本地存储
     localStorage.setItem('user_token', userData.access_token)
     localStorage.setItem('user_name', userData.username)
+    localStorage.setItem('user_role', role.value)
     
     // 关键：为所有后续请求设置默认Authorization头
     axios.defaults.headers.common['Authorization'] = `Bearer ${userData.access_token}`
-    console.log('登录成功，令牌已保存到全局头:', axios.defaults.headers.common['Authorization'])
   }
-  
+
   // 登出
   function logout() {
-    console.log('执行登出操作')
     username.value = ''
     token.value = ''
     userId.value = null
+    role.value = 'user'
     
     // 清除本地存储
     localStorage.removeItem('user_token')
     localStorage.removeItem('user_name')
-    
+    localStorage.removeItem('user_role')    
     // 移除默认授权头
     delete axios.defaults.headers.common['Authorization']
-    console.log('已清除授权头')
   }
   
-  // 获取标准格式的 Authorization 头
-  function getAuthHeader() {
-    if (!token.value) return {}
-    return { Authorization: `Bearer ${token.value}` }
-  }
-  
-  // 改进register方法，增强错误处理和日志
+  // 改进register方法，增强错误处理
   async function register(userData) {
     try {
-      console.log('注册请求数据:', userData);
-      
       // 本地验证
       if (userData.username?.length < 3) {
         throw new Error('用户名长度不能少于3个字符');
@@ -101,32 +100,25 @@ export const useUserStore = defineStore('user', () => {
       // 发送注册请求
       const response = await axios.post(`${getApiBaseUrl()}/api/register`, userData);
       
-      console.log('注册成功:', response.data);
       return response.data;
     } catch (error) {
       // 增强错误处理
       if (error.response) {
         // 服务器返回错误
-        console.error('注册失败 - 服务器响应:', error.response.status, error.response.data);
-        
         if (error.response.status === 409) {
           throw new Error('该用户名已被注册');
         } else if (error.response.data?.msg) {
-          throw new Error(error.response.data.msg);
-        } else {
+          throw new Error(error.response.data.msg);        } else {
           throw new Error(`服务器错误(${error.response.status})`);
         }
       } else if (error.request) {
         // 请求发出但没有收到响应
-        console.error('注册失败 - 无响应:', error.request);
         throw new Error('服务器未响应，请检查网络连接');
       } else if (error.message) {
         // 本地验证错误或其他错误
-        console.error('注册失败 - 错误信息:', error.message);
         throw error;
       } else {
         // 未知错误
-        console.error('注册失败 - 未知错误:', error);
         throw new Error('注册过程中发生未知错误');
       }
     }
@@ -137,16 +129,11 @@ export const useUserStore = defineStore('user', () => {
     // 简单实现：检查令牌是否存在，不进行实际刷新
     return Boolean(token.value)
   }
-  
-  // 调试方法
-  function debugState() {
-    console.log('当前用户状态:', {
-      isLoggedIn: isLoggedIn.value,
-      username: username.value,
-      token: token.value ? token.value.substring(0, 10) + '...' : '无',
-      userId: userId.value,
-      axiosAuth: axios.defaults.headers.common['Authorization'] || '无'
-    })
+
+  // 获取标准格式的 Authorization 头
+  function getAuthHeader() {
+    if (!token.value) return {}
+    return { Authorization: `Bearer ${token.value}` }
   }
   
   // 确保所有必要的方法都被导出
@@ -154,13 +141,14 @@ export const useUserStore = defineStore('user', () => {
     username,
     token,
     userId,
+    role,
     isLoggedIn,
+    isAdmin,
+    init,
     login,
     logout,
-    init,
-    getAuthHeader,
     register,
     refreshTokenIfNeeded,
-    debugState
+    getAuthHeader
   }
 })
