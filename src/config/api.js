@@ -34,19 +34,32 @@ const config = {  development: {
 
 // 获取当前环境
 const getEnvironment = () => {
-  // 支持Vite环境变量
+  // 1. 检查 Vercel 部署环境
+  if (import.meta.env.VERCEL) {
+    return 'production'
+  }
+  
+  // 2. 支持Vite环境变量
   if (import.meta.env.VITE_APP_ENV) {
     return import.meta.env.VITE_APP_ENV
   }
   
-  // 支持NODE_ENV
+  // 3. 支持NODE_ENV
   if (import.meta.env.NODE_ENV) {
     return import.meta.env.NODE_ENV
   }
   
-  // 检查是否为生产构建（通过import.meta.env.PROD）
+  // 4. 检查是否为生产构建（通过import.meta.env.PROD）
   if (import.meta.env.PROD) {
     return 'production'
+  }
+  
+  // 5. 检查域名是否为生产域名
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname.includes('wenturc.com') || hostname.includes('vercel.app')) {
+      return 'production'
+    }
   }
   
   // 默认开发环境
@@ -56,7 +69,22 @@ const getEnvironment = () => {
 // 获取当前环境配置
 const getCurrentConfig = () => {
   const env = getEnvironment()
-  return config[env] || config.development
+  const selectedConfig = config[env] || config.development
+  
+  // 调试信息（仅在开发环境显示）
+  if (typeof window !== 'undefined' && !import.meta.env.PROD) {
+    console.log('API配置调试信息:', {
+      检测到的环境: env,
+      VITE_APP_ENV: import.meta.env.VITE_APP_ENV,
+      NODE_ENV: import.meta.env.NODE_ENV,
+      VERCEL: import.meta.env.VERCEL,
+      PROD: import.meta.env.PROD,
+      当前域名: window.location.hostname,
+      使用的API地址: selectedConfig.apiBaseUrl
+    })
+  }
+  
+  return selectedConfig
 }
 
 // 导出API配置
