@@ -34,30 +34,33 @@ const config = {  development: {
 
 // 获取当前环境
 const getEnvironment = () => {
-  // 1. 检查 Vercel 部署环境
-  if (import.meta.env.VERCEL) {
-    return 'production'
-  }
-  
-  // 2. 支持Vite环境变量
+  // 优先级1: 显式设置的VITE_APP_ENV环境变量
   if (import.meta.env.VITE_APP_ENV) {
     return import.meta.env.VITE_APP_ENV
   }
   
-  // 3. 支持NODE_ENV
-  if (import.meta.env.NODE_ENV) {
-    return import.meta.env.NODE_ENV
-  }
-  
-  // 4. 检查是否为生产构建（通过import.meta.env.PROD）
+  // 优先级2: Vite的PROD标识（这是最可靠的构建时环境标识）
   if (import.meta.env.PROD) {
     return 'production'
   }
   
-  // 5. 检查域名是否为生产域名
+  // 优先级3: NODE_ENV环境变量
+  if (import.meta.env.NODE_ENV === 'production') {
+    return 'production'
+  }
+  
+  // 优先级4: 检查特定的部署平台环境变量
+  if (import.meta.env.VERCEL || import.meta.env.NETLIFY || import.meta.env.GITHUB_ACTIONS) {
+    return 'production'
+  }
+  
+  // 优先级5: 运行时域名检测（作为最后的备选方案）
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname
-    if (hostname.includes('wenturc.com') || hostname.includes('vercel.app')) {
+    if (hostname.includes('wenturc.com') || 
+        hostname.includes('vercel.app') || 
+        hostname.includes('netlify.app') || 
+        hostname.includes('github.io')) {
       return 'production'
     }
   }
@@ -71,16 +74,18 @@ const getCurrentConfig = () => {
   const env = getEnvironment()
   const selectedConfig = config[env] || config.development
   
-  // 调试信息（仅在开发环境显示）
-  if (typeof window !== 'undefined' && !import.meta.env.PROD) {
-    console.log('API配置调试信息:', {
-      检测到的环境: env,
-      VITE_APP_ENV: import.meta.env.VITE_APP_ENV,
-      NODE_ENV: import.meta.env.NODE_ENV,
-      VERCEL: import.meta.env.VERCEL,
-      PROD: import.meta.env.PROD,
-      当前域名: window.location.hostname,
-      使用的API地址: selectedConfig.apiBaseUrl
+  // 调试信息（总是显示，方便排查问题）
+  if (typeof window !== 'undefined') {
+    console.log('🔧 API配置调试信息:', {
+      '检测到的环境': env,
+      'VITE_APP_ENV': import.meta.env.VITE_APP_ENV,
+      'NODE_ENV': import.meta.env.NODE_ENV,
+      'PROD': import.meta.env.PROD,
+      'VERCEL': import.meta.env.VERCEL,
+      'NETLIFY': import.meta.env.NETLIFY,
+      'GITHUB_ACTIONS': import.meta.env.GITHUB_ACTIONS,
+      '当前域名': window.location.hostname,
+      '使用的API地址': selectedConfig.apiBaseUrl
     })
   }
   
