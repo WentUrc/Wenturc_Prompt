@@ -47,7 +47,13 @@ jobs:
 
       # Step 5: 创建 .nojekyll 文件
       - name: Create .nojekyll file
-        run: echo "" > dist/.nojekyll      # Step 6: 部署到 gh-pages 分支
+        run: echo "" > dist/.nojekyll      # Step 6: 创建构建产物压缩包
+      - name: Create dist archive
+        run: |
+          cd dist
+          zip -r ../dist-${{ github.sha }}.zip .
+          cd ..
+            # Step 7: 部署到 gh-pages 分支
       - name: Deploy to gh-pages branch
         uses: JamesIves/github-pages-deploy-action@v4.4.3
         with:
@@ -55,3 +61,46 @@ jobs:
           folder: dist  # 使用 dist 目录作为静态文件源（相对于工作目录）
           clean: true  # 清理目标分支中的旧文件
           single-commit: true  # 使用单次提交而不是保留历史
+          
+      # Step 8: 获取构建时间
+      - name: Get build time
+        id: build_time
+        run: |
+          BUILD_TIME=$(date +'%Y-%m-%d %H:%M:%S UTC')
+          echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_OUTPUT
+          
+      # Step 9: 创建版本标签
+      - name: Create version tag
+        id: create_tag
+        run: |
+          VERSION="v$(date +'%Y.%m.%d.%H%M')"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag $VERSION
+          git push origin $VERSION          
+      # Step 10: 创建 Release 并上传构建产物
+      - name: Create Release with dist
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.create_tag.outputs.VERSION }}
+          name: "Auto Deploy ${{ steps.create_tag.outputs.VERSION }}"
+          body: |
+            🚀 自动构建部署
+            
+            **构建信息:**
+            - 提交: ${{ github.sha }}
+            - 分支: ${{ github.ref_name }}
+            - 构建时间: ${{ steps.build_time.outputs.BUILD_TIME }}
+            
+            **部署文件:**
+            - `dist-${{ github.sha }}.zip` - 完整的前端构建产物
+            
+            **服务器部署:**
+            服务器将在1小时内自动检测并部署此版本。
+          files: |
+            dist-${{ github.sha }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
