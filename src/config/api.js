@@ -44,6 +44,11 @@ const getEnvironment = () => {
     return import.meta.env.NODE_ENV
   }
   
+  // 检查是否为生产构建（通过import.meta.env.PROD）
+  if (import.meta.env.PROD) {
+    return 'production'
+  }
+  
   // 默认开发环境
   return 'development'
 }
