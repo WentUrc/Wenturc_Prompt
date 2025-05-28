@@ -35,9 +35,10 @@
     </div>    <!-- 外部网站Prompts区域 -->
     <div class="section-header external-section">
       <div class="external-header">
-        <div class="external-title-group">          <h3>
+        <div class="external-title-group">
+          <h3>
             <a 
-              href="http://www.jasongjz.top:8000/app/" 
+              href="https://www.jasongjz.top"
               target="_blank" 
               class="external-link"
               @click.prevent="visitJasonWebsite"
@@ -336,7 +337,7 @@ const handleExternalDetail = (prompt) => {
 
 // 访问Jason的原网站
 const visitJasonWebsite = () => {
-  window.open('http://www.jasongjz.top:8000/app/', '_blank')
+  window.open('http://www.jasongjz.top/', '_blank')
 }
 
 // 访问vmoranv的网站
