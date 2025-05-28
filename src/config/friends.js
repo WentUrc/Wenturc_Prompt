@@ -14,7 +14,7 @@ export const friendsLinks = [
   {
     name: 'Jason.Joestar的prompt市场',
     description: 'Jason.Joestar的prompt市场',
-    url: 'https://www.jasongjz.top/app/',
+    url: 'https://www.jasongjz.top/',
     avatar: 'https://avatars.githubusercontent.com/u/197440256?v=4',
     category: 'Prompt市场'
   },
