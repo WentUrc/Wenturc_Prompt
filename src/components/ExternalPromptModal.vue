@@ -1,4 +1,5 @@
-<template>  <el-dialog
+<template>
+  <el-dialog
     v-model="visible"
     :title="prompt?.title || '外部Prompt详情'"
     :width="getDialogWidth()"
