@@ -315,12 +315,10 @@ const loadStats = async () => {
 .main-tabs :deep(.el-tabs__content) {
   padding: 25px;
   position: relative;
-  z-index: 1;
 }
 
 .main-tabs :deep(.el-tabs__nav-wrap) {
   position: relative;
-  z-index: 1;
 }
 
 .main-tabs :deep(.el-tabs__item) {
@@ -388,6 +386,17 @@ const loadStats = async () => {
   border-radius: 16px !important;
 }
 
+/* 确保Element Plus弹窗组件始终显示在标签页之上 */
+:global(.el-overlay),
+:global(.el-dialog),
+:global(.el-message-box),
+:global(.el-loading-mask),
+:global(.el-drawer),
+:global(.el-popover),
+:global(.el-tooltip__popper) {
+  z-index: 2000 !important;
+}
+
 /* 为 border-card 类型的标签页添加圆角 */
 .main-tabs :deep(.el-tabs--border-card) {
   border-radius: 16px !important;
@@ -433,7 +442,6 @@ const loadStats = async () => {
 
 .main-tabs :deep(.el-tabs__nav-wrap) {
   position: relative;
-  z-index: 1;
   background: transparent !important;
 }
 
@@ -470,7 +478,6 @@ const loadStats = async () => {
   border-radius: 0 0 16px 16px !important;
   padding: 25px;
   position: relative;
-  z-index: 1;
   border: none !important;
 }
 
