@@ -145,7 +145,7 @@ const submitForm = async () => {
         
         // 清空表单
         resetForm()
-          ElMessage.success('Prompt创建成功')
+          ElMessage.success('Prompt创建成功，正在审核中')
         router.push('/prompts')
       } catch (error) {
         
