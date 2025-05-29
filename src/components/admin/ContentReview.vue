@@ -163,9 +163,15 @@
           <el-descriptions-item label="分类">{{ selectedPromptDetail.category }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatDate(selectedPromptDetail.created_at) }}</el-descriptions-item>
         </el-descriptions>
-        
-        <el-divider>内容</el-divider>
-        <div class="content-detail">{{ selectedPromptDetail.content }}</div>
+          <el-divider>内容</el-divider>
+        <CustomScrollbar 
+          direction="vertical" 
+          size="thin" 
+          theme="primary" 
+          :auto-hide="true"
+        >
+          <div class="content-detail">{{ selectedPromptDetail.content }}</div>
+        </CustomScrollbar>
       </div>
     </el-dialog>
 
@@ -238,6 +244,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Refresh, Check, Close, View, Edit } from '@element-plus/icons-vue'
 import axios from 'axios'
 import { getApiBaseUrl } from '../../config/api'
+import CustomScrollbar from '@/components/common/CustomScrollbar.vue'
 
 const emit = defineEmits(['refresh-stats'])
 
@@ -752,7 +759,6 @@ defineExpose({
   padding: 15px;
   border-radius: 8px;
   max-height: 400px;
-  overflow-y: auto;
   border: 1px solid var(--border-color, #dcdfe6);
 }
 

@@ -26,17 +26,19 @@
       @mobile-menu-toggle="handleMobileMenuToggle"
     />
     
-    <el-config-provider>
+    <el-config-provider>      
       <el-container class="full-height">
         <el-main>
-          <router-view v-slot="{ Component }">
-            <transition name="fade" mode="out-in">
-              <component 
-                :is="Component" 
-                @iframe-modal-change="handleIframeModalChange"
-              />
-            </transition>
-          </router-view>
+
+            <router-view v-slot="{ Component }">
+              <transition name="fade" mode="out-in">
+                <component 
+                  :is="Component" 
+                  @iframe-modal-change="handleIframeModalChange"
+                />
+              </transition>
+            </router-view>
+
         </el-main>
         
         <el-footer 
@@ -70,6 +72,7 @@ import { useUserStore } from './stores/user';
 import { useThemeStore } from './stores/theme';
 import AppHeader from './components/AppHeader.vue';
 import BackToTop from './components/BackToTop.vue';
+import CustomScrollbar from './components/common/CustomScrollbar.vue';
 
 const userStore = useUserStore();
 const themeStore = useThemeStore();

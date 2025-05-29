@@ -373,11 +373,16 @@ export default {
       await new Promise(resolve => setTimeout(resolve, 200))
       
       try {
-        // 确保DOM元素存在且有尺寸
+        // 确保DOM元素存在且可见
         if (userGrowthChart.value) {
-          // 检查元素尺寸
-          const userChartRect = userGrowthChart.value.getBoundingClientRect()
-          if (userChartRect.width > 0 && userChartRect.height > 0) {
+          // 检查元素是否可见（不仅仅是尺寸检查）
+          const userChartElement = userGrowthChart.value
+          const userChartRect = userChartElement.getBoundingClientRect()
+          const isVisible = userChartElement.offsetParent !== null && 
+                           userChartRect.width > 0 && 
+                           userChartRect.height > 0
+          
+          if (isVisible) {
             if (!userChart) {
               userChart = echarts.init(userGrowthChart.value)
               console.log('用户增长图表初始化成功', `尺寸: ${userChartRect.width}x${userChartRect.height}`)
@@ -385,8 +390,11 @@ export default {
               userChart.resize()
             }
           } else {
-            console.warn('用户增长图表DOM元素尺寸为0:', userChartRect)
-            // 如果尺寸为0，延迟重试
+            console.warn('用户增长图表元素不可见，延迟重试:', {
+              offsetParent: userChartElement.offsetParent,
+              rect: userChartRect
+            })
+            // 如果元素不可见，延迟重试
             setTimeout(() => initCharts(), 100)
             return
           }
@@ -395,9 +403,14 @@ export default {
         }
         
         if (reviewStatusChart.value) {
-          // 检查元素尺寸
-          const reviewChartRect = reviewStatusChart.value.getBoundingClientRect()
-          if (reviewChartRect.width > 0 && reviewChartRect.height > 0) {
+          // 检查元素是否可见
+          const reviewChartElement = reviewStatusChart.value
+          const reviewChartRect = reviewChartElement.getBoundingClientRect()
+          const isVisible = reviewChartElement.offsetParent !== null && 
+                           reviewChartRect.width > 0 && 
+                           reviewChartRect.height > 0
+          
+          if (isVisible) {
             if (!reviewChart) {
               reviewChart = echarts.init(reviewStatusChart.value)
               console.log('审核状态图表初始化成功', `尺寸: ${reviewChartRect.width}x${reviewChartRect.height}`)
@@ -405,8 +418,11 @@ export default {
               reviewChart.resize()
             }
           } else {
-            console.warn('审核状态图表DOM元素尺寸为0:', reviewChartRect)
-            // 如果尺寸为0，延迟重试
+            console.warn('审核状态图表元素不可见，延迟重试:', {
+              offsetParent: reviewChartElement.offsetParent,
+              rect: reviewChartRect
+            })
+            // 如果元素不可见，延迟重试
             setTimeout(() => initCharts(), 100)
             return
           }
@@ -616,12 +632,43 @@ export default {
       if (!dateString) return '-'
       const date = new Date(dateString)
       return date.toLocaleDateString('zh-CN')
-    }
-
-    // 窗口大小变化时重新调整图表
+    }    // 窗口大小变化时重新调整图表
     const handleResize = () => {
       if (userChart) userChart.resize()
       if (reviewChart) reviewChart.resize()
+    }
+
+    // 重新初始化图表（公开方法，供父组件调用）
+    const reinitializeCharts = async () => {
+      console.log('重新初始化图表...')
+      try {
+        // 销毁现有图表实例
+        if (userChart) {
+          userChart.dispose()
+          userChart = null
+        }
+        if (reviewChart) {
+          reviewChart.dispose()
+          reviewChart = null
+        }
+
+        // 等待DOM完全更新
+        await nextTick()
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        // 重新初始化图表
+        await initCharts()
+
+        // 重新加载图表数据
+        await Promise.all([
+          loadUserGrowthData(),
+          loadReviewStatusData()
+        ])
+
+        console.log('图表重新初始化完成')
+      } catch (error) {
+        console.error('重新初始化图表失败:', error)
+      }
     }
 
     onMounted(async () => {
@@ -648,8 +695,7 @@ export default {
           loadUserGrowthData(),
           loadReviewStatusData()
         ])
-        
-        window.addEventListener('resize', handleResize)
+          window.addEventListener('resize', handleResize)
       } catch (error) {
         console.error('组件初始化失败:', error)
         ElMessage.error('页面初始化失败，请刷新重试')
@@ -692,7 +738,8 @@ export default {
       getMemoryColor,
       getCpuColor,
       getDiskColor,
-      formatDate
+      formatDate,
+      reinitializeCharts  // 添加重新初始化图表的方法
     }
   }
 }

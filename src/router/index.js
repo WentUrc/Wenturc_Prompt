@@ -9,6 +9,7 @@ const PromptList = () => import(/* webpackChunkName: "prompts" */ '../views/Prom
 const PromptDetail = () => import(/* webpackChunkName: "prompts" */ '../views/PromptDetail.vue')
 const CreatePrompt = () => import(/* webpackChunkName: "prompts" */ '../views/CreatePrompt.vue')
 const AdminPanel = () => import(/* webpackChunkName: "admin" */ '../views/AdminPanel.vue')
+const Competition = () => import(/* webpackChunkName: "competition" */ '../views/Competition.vue')
 
 // 使用根路径，因为已经绑定了自定义域名
 const base = '/'
@@ -47,13 +48,19 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/competition',
+      name: 'competition',
+      component: Competition
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: AdminPanel,
       meta: { 
         requiresAuth: true,
         requiresAdmin: true
-      }    },
+      }
+    },
     // 添加通配符路由，处理404情况
     {
       path: '/:pathMatch(.*)*',
