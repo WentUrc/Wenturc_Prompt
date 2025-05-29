@@ -57,10 +57,13 @@
           </el-col>
         </el-row>
       </div>      <!-- 主要功能标签页 -->
-      <div class="main-tabs">
-        <el-tabs v-model="activeTab" type="border-card">
+      <div class="main-tabs">        <el-tabs v-model="activeTab" type="border-card">
           <el-tab-pane label="内容审核" name="review">
             <ContentReview ref="contentReviewRef" @refresh-stats="loadStats" />
+          </el-tab-pane>
+          
+          <el-tab-pane label="比赛管理" name="competition">
+            <CompetitionManagement ref="competitionManagementRef" @refresh-stats="loadStats" />
           </el-tab-pane>
           
           <el-tab-pane label="用户管理" name="users">
@@ -70,9 +73,8 @@
           <el-tab-pane label="审核历史" name="history">
             <ReviewHistory ref="reviewHistoryRef" />
           </el-tab-pane>
-          
-          <el-tab-pane label="统计数据" name="stats">
-            <AdminStats :stats="stats" @refresh="loadStats" />
+            <el-tab-pane label="统计数据" name="stats">
+            <AdminStats ref="adminStatsRef" :stats="stats" @refresh="loadStats" />
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -81,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useUserStore } from '../stores/user'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -90,6 +92,7 @@ import { getApiBaseUrl } from '../config/api'
 
 // 导入子组件
 import ContentReview from '../components/admin/ContentReview.vue'
+import CompetitionManagement from '../components/admin/CompetitionManagement.vue'
 import UserManagement from '../components/admin/UserManagement.vue'
 import ReviewHistory from '../components/admin/ReviewHistory.vue'
 import AdminStats from '../components/admin/AdminStats.vue'
@@ -106,6 +109,7 @@ const loading = ref(false)
 const contentReviewRef = ref(null)
 const userManagementRef = ref(null)
 const reviewHistoryRef = ref(null)
+const adminStatsRef = ref(null)
 
 // 检查权限
 onMounted(async () => {
@@ -116,6 +120,20 @@ onMounted(async () => {
   }
   
   await loadStats()
+})
+
+// 监听标签页切换
+watch(activeTab, async (newTab, oldTab) => {
+  if (newTab === 'stats') {
+    // 切换到统计数据标签页时，等待DOM更新后重新初始化图表
+    await nextTick()
+    // 给一些额外时间让标签页内容完全显示
+    setTimeout(() => {
+      if (adminStatsRef.value && adminStatsRef.value.reinitializeCharts) {
+        adminStatsRef.value.reinitializeCharts()
+      }
+    }, 200)
+  }
 })
 
 // 加载统计数据

@@ -3,10 +3,10 @@
     <div class="header-content">        
       <router-link to="/" class="logo-link">
         <h1 class="logo"><img src="/img/logo.png" alt="WentUrc" class="logo-icon" draggable="false" /> WentUrc Prompt</h1>
-      </router-link>
-        <div class="nav-links">
+      </router-link>        <div class="nav-links">
         <router-link to="/">首 页</router-link>
         <router-link to="/prompts">浏 览</router-link>
+        <router-link to="/competition">比 赛</router-link>
         <router-link v-if="isLoggedIn" to="/create">创 建</router-link>
         <router-link v-if="isLoggedIn && userStore.isAdmin" to="/admin" class="admin-link">
           <el-icon><Setting /></el-icon>
@@ -97,10 +97,10 @@
       </el-button>
     </div>
       <!-- 移动端下拉菜单 -->
-    <transition name="slide-fade">
-      <div class="mobile-menu" v-if="showMobileMenu" @click.stop>
+    <transition name="slide-fade">      <div class="mobile-menu" v-if="showMobileMenu" @click.stop>
         <router-link to="/" @click="closeMobileMenu">首页</router-link>
         <router-link to="/prompts" @click="closeMobileMenu">浏览</router-link>
+        <router-link to="/competition" @click="closeMobileMenu">比赛</router-link>
         <router-link v-if="isLoggedIn" to="/create" @click="closeMobileMenu">创建</router-link>
         <router-link v-if="isLoggedIn && userStore.isAdmin" to="/admin" @click="closeMobileMenu" class="admin-mobile-link">
           <el-icon><Setting /></el-icon>
