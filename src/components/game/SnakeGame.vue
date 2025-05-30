@@ -231,6 +231,21 @@ const gameOver = () => {
 
 // 键盘控制
 const handleKeyPress = (event) => {
+  // 检查是否在输入框中，如果是则不响应游戏按键
+  const activeElement = document.activeElement
+  const isInputFocused = activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.isContentEditable ||
+    activeElement.closest('.el-input') || // Element Plus 输入框
+    activeElement.closest('.el-textarea') || // Element Plus 文本域
+    activeElement.closest('[contenteditable]') // 可编辑元素
+  )
+  
+  if (isInputFocused) {
+    return // 如果在输入框中，不处理游戏按键
+  }
+  
   const keyMap = {
     'ArrowUp': 'up',
     'ArrowDown': 'down', 
@@ -245,13 +260,28 @@ const handleKeyPress = (event) => {
     'd': 'right',
     'D': 'right'
   }
-  
   if (keyMap[event.key]) {
     event.preventDefault()
     changeDirection(keyMap[event.key])
   }
   
+  // 空格键也需要检查输入框状态
   if (event.key === ' ') {
+    // 再次检查是否在输入框中（用户可能在输入文本时按空格）
+    const activeElement = document.activeElement
+    const isInputFocused = activeElement && (
+      activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.isContentEditable ||
+      activeElement.closest('.el-input') ||
+      activeElement.closest('.el-textarea') ||
+      activeElement.closest('[contenteditable]')
+    )
+    
+    if (isInputFocused) {
+      return // 如果在输入框中，不处理空格键
+    }
+    
     event.preventDefault()
     if (gameStarted.value) {
       toggleGame()
