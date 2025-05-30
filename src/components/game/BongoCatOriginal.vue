@@ -104,6 +104,21 @@ const playSound = (soundName) => {
 
 // 处理按键
 const handleKeyPress = (event) => {
+  // 检查是否在输入框中，如果是则不响应游戏按键
+  const activeElement = document.activeElement
+  const isInputFocused = activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.isContentEditable ||
+    activeElement.closest('.el-input') || // Element Plus 输入框
+    activeElement.closest('.el-textarea') || // Element Plus 文本域
+    activeElement.closest('[contenteditable]') // 可编辑元素
+  )
+  
+  if (isInputFocused) {
+    return // 如果在输入框中，不处理游戏按键
+  }
+  
   const key = event.key.toUpperCase()
   
   if (key in KeyEnum) {
@@ -113,6 +128,21 @@ const handleKeyPress = (event) => {
 }
 
 const handleKeyRelease = (event) => {
+  // 同样检查是否在输入框中
+  const activeElement = document.activeElement
+  const isInputFocused = activeElement && (
+    activeElement.tagName === 'INPUT' ||
+    activeElement.tagName === 'TEXTAREA' ||
+    activeElement.isContentEditable ||
+    activeElement.closest('.el-input') ||
+    activeElement.closest('.el-textarea') ||
+    activeElement.closest('[contenteditable]')
+  )
+  
+  if (isInputFocused) {
+    return
+  }
+  
   const key = event.key.toUpperCase()
   
   if (key in KeyEnum) {
