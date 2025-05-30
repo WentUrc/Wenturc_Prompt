@@ -204,37 +204,74 @@ const handleClose = () => {
 
 const handleSubmit = async () => {
   try {
-    const valid = await formRef.value.validate()
-    if (!valid) return
+    // 修复表单验证处理
+    const isValid = await formRef.value.validate().catch(() => false)
+    if (!isValid) {
+      ElMessage.warning('请检查表单输入')
+      return
+    }
 
-    loading.value = true
-
-    const response = await axios.post(`${getApiBaseUrl()}/api/competition/admin/review/${props.submission.id}`, {
+    loading.value = true// 添加详细的请求诊断信息
+    const requestUrl = `${getApiBaseUrl()}/api/competition/admin/review/${props.submission.id}`
+    console.log('发送审核请求:', requestUrl)
+    console.log('当前用户Token:', localStorage.getItem('user_token') ? '已设置' : '未设置')
+    console.log('当前用户角色:', localStorage.getItem('user_role'))
+    console.log('请求数据:', {
       action: formData.value.action,
       comment: formData.value.comment.trim()
     })
 
+    const response = await axios.post(requestUrl, {
+      action: formData.value.action,
+      comment: formData.value.comment.trim()
+    })
+    
+    console.log('审核响应:', response.data)
+    
     const actionText = formData.value.action === 'approve' ? '通过' : '拒绝'
     ElMessage.success(`作品审核${actionText}成功`)
     
     emit('reviewed', {
-      submission: response.data.submission,
+      submission: response.data.submission || props.submission,
       action: formData.value.action
     })
     
     dialogVisible.value = false
-
   } catch (error) {
-    console.error('审核失败:', error)
-    console.error('错误响应:', error.response?.data)
+    console.error('审核失败详细信息:')
+    console.error('- 错误对象:', error)
+    console.error('- 错误消息:', error.message)
+    console.error('- 错误代码:', error.code)
+    console.error('- 请求配置:', error.config)
+    
+    if (error.response) {
+      // 服务器返回了错误响应
+      console.error('- 响应状态:', error.response.status)
+      console.error('- 响应头:', error.response.headers)
+      console.error('- 响应数据:', error.response.data)
+    } else if (error.request) {
+      // 请求发出了但没有收到响应
+      console.error('- 请求对象:', error.request)
+      console.error('- 网络错误或超时')
+    }
     
     let errorMsg = '审核失败'
     if (error.response?.data?.msg) {
       errorMsg = error.response.data.msg
     } else if (error.response?.data?.error) {
       errorMsg = error.response.data.error
+    } else if (error.response?.status) {
+      errorMsg = `服务器错误 (HTTP ${error.response.status})`
+    } else if (error.code === 'NETWORK_ERROR') {
+      errorMsg = '网络连接错误，请检查网络或服务器状态'
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMsg = '服务器拒绝连接，请检查服务器是否运行'
+    } else if (error.message?.includes('timeout')) {
+      errorMsg = '请求超时，请重试'
     } else if (error.message) {
-      errorMsg = error.message
+      errorMsg = `请求失败: ${error.message}`
+    } else {
+      errorMsg = '未知错误，请查看控制台获取详细信息'
     }
     
     ElMessage.error(errorMsg)

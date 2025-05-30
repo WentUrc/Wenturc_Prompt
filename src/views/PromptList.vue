@@ -140,6 +140,7 @@ import { useUserStore } from '../stores/user'
 import PromptCard from '../components/PromptCard.vue'
 import ExternalPromptModal from '../components/ExternalPromptModal.vue'
 import { getApiBaseUrl, getExternalApiBaseUrl, getVmoranvApiBaseUrl } from '../config/api'
+import { jasonApi } from '../utils/jasonApi'
 
 const userStore = useUserStore()
 const prompts = ref([])
@@ -206,18 +207,16 @@ const fetchVmoranvPrompts = async () => {
   }
 }
 
-// 获取外部API数据
+// 获取外部API数据 - 使用优化的Jason API工具
 const fetchExternalPrompts = async () => {
   externalLoading.value = true
   try {
+    // 首先尝试使用我们的批量获取API
+    const result = await jasonApi.getAllPrompts();
     
-    // 使用我们自己的后端代理来请求数据
-    const apiBaseUrl = getApiBaseUrl();
-    const response = await axios.get(`${apiBaseUrl}/api/external/prompts`);
-    
-    if (response.data) {
+    if (result.success) {
       // 转换外部数据格式以匹配本地格式
-      externalPrompts.value = Array.isArray(response.data) ? response.data.map(prompt => ({
+      externalPrompts.value = result.prompts.map(prompt => ({
         ...prompt,
         // 确保有必要的字段
         category: prompt.category || '通用',
@@ -233,14 +232,47 @@ const fetchExternalPrompts = async () => {
         source: 'Jason的市场',
         // 外部prompts默认不支持点赞状态
         hasLiked: false
-      })) : [];
+      }));
       
-      console.log('成功获取外部API数据，数量:', externalPrompts.value.length);
+      console.log('成功获取Jason的prompt市场数据，数量:', result.total);
+      
     } else {
-      throw new Error('外部API返回的数据格式不正确');
-    }  } catch (error) {
-    // 失败时不显示错误消息，只在控制台记录
-    externalPrompts.value = [];
+      throw new Error(result.error || 'Jason市场API返回错误');
+    }
+  } catch (error) {
+    console.error('获取Jason市场数据失败:', error);
+    
+    // 如果批量获取失败，尝试分页获取作为备用方案
+    try {
+      console.log('尝试使用分页方式获取Jason市场数据...');
+      const fallbackResult = await jasonApi.getPrompts(0, 1000);
+      
+      if (fallbackResult.success) {
+        externalPrompts.value = Array.isArray(fallbackResult.data) ? fallbackResult.data.map(prompt => ({
+          ...prompt,
+          category: prompt.category || '通用',
+          content: prompt.content,
+          title: prompt.title,
+          description: prompt.description || prompt.content?.substring(0, 100) + '...',
+          likes: prompt.likes || 0,
+          created_at: prompt.created_at,
+          author: prompt.owner?.username || prompt.author || '未知作者',
+          isExternal: true,
+          source: 'Jason的市场',
+          hasLiked: false
+        })) : [];
+        
+        console.log('分页方式获取Jason市场数据成功，数量:', externalPrompts.value.length);
+        ElMessage.info(`通过分页方式获取了${externalPrompts.value.length}个Jason市场的prompt`);
+      } else {
+        throw new Error(fallbackResult.error || '备用API也失败了');
+      }
+    } catch (fallbackError) {
+      console.error('分页获取也失败:', fallbackError);
+      externalPrompts.value = [];
+      // 只在两种方式都失败时才显示错误消息
+      ElMessage.warning('暂时无法获取Jason市场数据，请稍后重试');
+    }
   } finally {
     externalLoading.value = false;
   }

@@ -33,14 +33,19 @@
           <div class="stat-number">{{ stats.total_submissions }}</div>
           <div class="stat-label">总作品数</div>
         </div>
-      </el-card>
-      <el-card class="stat-card">
+      </el-card>      <el-card class="stat-card">
         <div class="stat-content">
           <div class="stat-number">{{ stats.approved_submissions }}</div>
           <div class="stat-label">已通过作品</div>
         </div>
       </el-card>
-    </div>    <!-- 当前比赛信息 -->
+      <el-card class="stat-card">
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.rejected_submissions || 0 }}</div>
+          <div class="stat-label">已拒绝作品</div>
+        </div>
+      </el-card>
+    </div><!-- 当前比赛信息 -->
     <el-card class="current-competition-card" v-if="currentCompetition">
       <template #header>
         <div class="card-header">
@@ -198,6 +203,57 @@
               @click="unpromoteSubmission(submission.id)"
             >
               撤销推广
+            </el-button>          </div>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- 已拒绝作品管理 -->
+    <el-card class="rejected-submissions-card">
+      <template #header>
+        <div class="card-header">
+          <span>已拒绝作品管理</span>
+          <el-button size="small" @click="loadRejectedSubmissions">
+            <el-icon><Refresh /></el-icon>
+            加载
+          </el-button>
+        </div>
+      </template>
+
+      <div v-if="rejectedSubmissions.length === 0" class="empty-state">
+        <el-empty description="暂无已拒绝作品" />
+      </div>
+
+      <div v-else class="rejected-list">
+        <div 
+          v-for="submission in rejectedSubmissions" 
+          :key="submission.id"
+          class="rejected-item"
+        >
+          <div class="rejected-info">
+            <h4>{{ submission.title }}</h4>
+            <div class="rejected-meta">
+              <span>作者：{{ submission.author }}</span>
+              <span>分类：{{ submission.category }}</span>
+              <span v-if="submission.competition_title">比赛：{{ submission.competition_title }}</span>
+              <span v-if="submission.reviewed_at">拒绝时间：{{ formatTime(submission.reviewed_at) }}</span>
+              <el-tag type="danger" size="small">已拒绝</el-tag>
+            </div>
+            <div v-if="submission.review_comment" class="review-comment">
+              <span class="comment-label">拒绝原因：</span>
+              <span class="comment-text">{{ submission.review_comment }}</span>
+            </div>
+          </div>
+          <div class="rejected-actions">
+            <el-button size="small" @click="viewSubmission(submission)">
+              查看详情
+            </el-button>
+            <el-button 
+              size="small" 
+              type="warning"
+              @click="revertRejection(submission.id)"
+            >
+              撤销拒绝
             </el-button>
           </div>
         </div>
@@ -241,12 +297,14 @@ const stats = ref({
   total_competitions: 0,
   active_competitions: 0,
   total_submissions: 0,
-  approved_submissions: 0
+  approved_submissions: 0,
+  rejected_submissions: 0
 })
 
 const currentCompetition = ref(null)
 const pendingSubmissions = ref([])
 const approvedSubmissions = ref([])
+const rejectedSubmissions = ref([])
 const selectedSubmission = ref(null)
 
 const showCreateDialog = ref(false)
@@ -265,7 +323,8 @@ const loadData = async () => {
     loadStats(),
     loadCurrentCompetition(),
     loadPendingSubmissions(),
-    loadApprovedSubmissions()
+    loadApprovedSubmissions(),
+    loadRejectedSubmissions()
   ])
 }
 
@@ -306,6 +365,15 @@ const loadApprovedSubmissions = async () => {
   }
 }
 
+const loadRejectedSubmissions = async () => {
+  try {
+    const response = await axios.get(`${getApiBaseUrl()}/api/competition/admin/rejected`)
+    rejectedSubmissions.value = response.data.submissions
+  } catch (error) {
+    console.error('加载已拒绝作品失败:', error)
+  }
+}
+
 const viewSubmission = (submission) => {
   selectedSubmission.value = submission
   showDetailDialog.value = true
@@ -323,6 +391,7 @@ const reviewSubmission = (submissionId, action) => {
 const handleReviewed = () => {
   loadPendingSubmissions()
   loadApprovedSubmissions()
+  loadRejectedSubmissions()
   loadStats()
   showReviewDialog.value = false
 }
@@ -371,6 +440,31 @@ const unpromoteSubmission = async (submissionId) => {
   } catch (error) {
     if (error === 'cancel') return
     const msg = error.response?.data?.msg || '撤销推广失败'
+    ElMessage.error(msg)
+  }
+}
+
+const revertRejection = async (submissionId) => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要撤销该作品的拒绝状态吗？作品将重新进入待审核状态。',
+      '确认撤销拒绝',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    await axios.post(`${getApiBaseUrl()}/api/competition/admin/revert-rejection/${submissionId}`)
+    ElMessage.success('已撤销拒绝，作品重新进入待审核状态')
+    loadRejectedSubmissions()
+    loadPendingSubmissions()
+    loadStats()
+    
+  } catch (error) {
+    if (error === 'cancel') return
+    const msg = error.response?.data?.msg || '撤销拒绝失败'
     ElMessage.error(msg)
   }
 }
@@ -501,7 +595,8 @@ const truncateText = (text, length) => {
 
 .current-competition-card,
 .pending-submissions-card,
-.approved-submissions-card {
+.approved-submissions-card,
+.rejected-submissions-card {
   margin-bottom: 30px;
 }
 
@@ -553,13 +648,15 @@ const truncateText = (text, length) => {
 }
 
 .submissions-list,
-.approved-list {
+.approved-list,
+.rejected-list {
   max-height: 400px;
   overflow-y: auto;
 }
 
 .submission-item,
-.approved-item {
+.approved-item,
+.rejected-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -568,31 +665,36 @@ const truncateText = (text, length) => {
 }
 
 .submission-item:last-child,
-.approved-item:last-child {
+.approved-item:last-child,
+.rejected-item:last-child {
   border-bottom: none;
 }
 
 .submission-info,
-.approved-info {
+.approved-info,
+.rejected-info {
   flex: 1;
   margin-right: 20px;
 }
 
 .submission-info h4,
-.approved-info h4 {
+.approved-info h4,
+.rejected-info h4 {
   margin: 0 0 8px 0;
   color: #303133;
 }
 
 .submission-meta,
-.approved-meta {
+.approved-meta,
+.rejected-meta {
   color: #909399;
   font-size: 0.9rem;
   margin-bottom: 8px;
 }
 
 .submission-meta span,
-.approved-meta span {
+.approved-meta span,
+.rejected-meta span {
   margin-right: 15px;
 }
 
@@ -602,8 +704,27 @@ const truncateText = (text, length) => {
   line-height: 1.4;
 }
 
+.review-comment {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #fef2f2;
+  border-radius: 4px;
+  border-left: 3px solid #f56565;
+}
+
+.comment-label {
+  font-weight: bold;
+  color: #e53e3e;
+  margin-right: 8px;
+}
+
+.comment-text {
+  color: #744210;
+}
+
 .submission-actions,
-.approved-actions {
+.approved-actions,
+.rejected-actions {
   display: flex;
   gap: 10px;
 }
@@ -626,15 +747,16 @@ const truncateText = (text, length) => {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
-  .submission-item,
-  .approved-item {
+    .submission-item,
+  .approved-item,
+  .rejected-item {
     flex-direction: column;
     align-items: flex-start;
   }
   
   .submission-actions,
-  .approved-actions {
+  .approved-actions,
+  .rejected-actions {
     margin-top: 10px;
     width: 100%;
     justify-content: flex-end;
