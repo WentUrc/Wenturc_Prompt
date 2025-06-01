@@ -96,7 +96,7 @@ npm run dev
 yarn dev
 ```
 
-开发服务器将在 `http://localhost:5174` 启动
+开发服务器将在 `http://localhost:5173` 启动
 
 ### 构建生产版本
 
